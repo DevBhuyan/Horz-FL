@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-def preprocesing_data(data_df, dataset_name):
+def preprocessing_data(data_df, dataset_name):
     if dataset_name == 'dc':
         data_df = data_df.rename(columns={'Y': 'Class'})
     if dataset_name == 'nsl':
@@ -12,8 +12,25 @@ def preprocesing_data(data_df, dataset_name):
         # print(data_df['class'])
     if dataset_name == 'ac':
         data_df.drop(['Time', ], axis=1, inplace=True)
-
-    return data_df
+    if dataset_name == 'musk':
+        data_df.drop(['molecule_name', 'conformation_name'], axis = 1, inplace = True)
+    if dataset_name == 'wdbc':
+        data_df = data_df.replace(regex={'M': '0', 'B': '1'})
+    if dataset_name == 'vowel':
+        data_df.drop(['Train_or_Test'], axis=1, inplace=True)
+        data_df = data_df.replace(regex={'Male': '0', 'Female': '1'})
+        data_df = data_df.replace(regex={'Andrew': '0', 'Bill': '1', 'David': '2', 'Mark': '3', 'Jo': '4', 'Kate': '5', 
+                                         'Penny': '6', 'Rose': '7', 'Mike': '8', 'Nick': '9', 'Rich': '10', 'Tim': '11', 
+                                         'Sarah': '12', 'Sue': '13', 'Wendy': '14'})
+        data_df = data_df.replace(regex={'hid': '0', 'hEd': '1', 'hAd': '0', 'hYd': '1', 'hOd': '0', 'hUd': '1',
+                                         'hId': '0', 'had': '1', 'hod': '0', 'hud': '1', 'hed': '0', 'hyd': '1'})
+    if dataset_name == 'isolet':
+        data_df = data_df.replace(regex={"'1'": 1, "'2'": 2, "'3'": 3, "'4'": 4, "'5'": 5, "'6'": 6, "'7'": 7,
+                                         "'8'": 8, "'9'": 9, "'10'": 10, "'11'": 11, "'12'": 12, "'13'": 13,
+                                         "'14'": 14, "'15'": 15, "'16'": 16, "'17'": 17, "'18'": 18, "'19'": 19,
+                                         "'20'": 20, "'21'": 21, "'22'": 22, "'23'": 23, "'24'": 24, "'25'": 25,
+                                         "'26'": 26})
+    return data_df.astype(float)
 
 
 def data_part_noniid(data_df1, n_client, degree, curr_dir, file, name):
