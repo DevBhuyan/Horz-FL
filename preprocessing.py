@@ -22,8 +22,8 @@ def preprocessing_data(data_df, dataset_name):
         data_df = data_df.replace(regex={'Andrew': '0', 'Bill': '1', 'David': '2', 'Mark': '3', 'Jo': '4', 'Kate': '5', 
                                          'Penny': '6', 'Rose': '7', 'Mike': '8', 'Nick': '9', 'Rich': '10', 'Tim': '11', 
                                          'Sarah': '12', 'Sue': '13', 'Wendy': '14'})
-        data_df = data_df.replace(regex={'hid': '0', 'hEd': '1', 'hAd': '0', 'hYd': '1', 'hOd': '0', 'hUd': '1',
-                                         'hId': '0', 'had': '1', 'hod': '0', 'hud': '1', 'hed': '0', 'hyd': '1'})
+        data_df = data_df.replace(regex={'hid': 0, 'hEd': 1, 'hAd': 2, 'hYd': 3, 'hOd': 4, 'hUd': 5,
+                                         'hId': 6, 'had': 7, 'hod': 8, 'hud': 9, 'hed': 10, 'hyd': 11})
     if dataset_name == 'isolet':
         data_df = data_df.replace(regex={"'1'": 1, "'2'": 2, "'3'": 3, "'4'": 4, "'5'": 5, "'6'": 6, "'7'": 7,
                                          "'8'": 8, "'9'": 9, "'10'": 10, "'11'": 11, "'12'": 12, "'13'": 13,
