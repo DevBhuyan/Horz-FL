@@ -144,7 +144,7 @@ cluster_labels :
 2
 
 ----Global feature subset----
-'Feature_1','Feature_0','Feature_4','Feature_3','Feature_5','Feature_7','Feature_8','Feature_6','Feature_2','Feature_9''Feature_1','Feature_0','Feature_4','Feature_3','Feature_5','Feature_7','Feature_8','Feature_6','Feature_2','Feature_9'
+'Feature_1','Feature_0','Feature_4','Feature_3','Feature_5','Feature_7','Feature_8','Feature_6','Feature_2','Feature_9'
  number of global feature subset :10
 
 ----Learning on Global features--------
