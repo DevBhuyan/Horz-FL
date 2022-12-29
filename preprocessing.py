@@ -17,7 +17,7 @@ def preprocessing_data(data_df, dataset_name):
     if dataset_name == 'wdbc':
         data_df = data_df.replace(regex={'M': '0', 'B': '1'})
     if dataset_name == 'vowel':
-        data_df.drop(['Train_or_Test'], axis=1, inplace=True)
+        data_df.drop(['id', 'Train_or_Test'], axis=1, inplace=True)
         data_df = data_df.replace(regex={'Male': '0', 'Female': '1'})
         data_df = data_df.replace(regex={'Andrew': '0', 'Bill': '1', 'David': '2', 'Mark': '3', 'Jo': '4', 'Kate': '5', 
                                          'Penny': '6', 'Rose': '7', 'Mike': '8', 'Nick': '9', 'Rich': '10', 'Tim': '11', 

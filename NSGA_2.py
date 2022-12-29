@@ -9,6 +9,18 @@ import random
 import pandas as pd
 import matplotlib.pyplot as plt
 
+# First function to optimize
+
+
+def func_fcmi(x):
+    return x
+
+
+# Second function to optimize
+
+
+def func_affmi(x):
+    return x
 
 # Function to find index of list
 
@@ -22,7 +34,7 @@ def index_of(a, list):
 # Function to sort by values
 def sort_by_values(list1, values):
     sorted_list = []
-    while len(sorted_list) != len(list1):
+    while (len(sorted_list) != len(list1)):
         if index_of(min(values), values) in list1:
             sorted_list.append(index_of(min(values), values))
         values[index_of(min(values), values)] = math.inf
@@ -30,27 +42,27 @@ def sort_by_values(list1, values):
 
 
 # Function to carry out NSGA-II's fast non dominated sort
-def fast_non_dominated_sort(values1, values2):
-    S = [[] for i in range(0, len(values1))]
+def fast_non_dominated_sort(fcmi_values, affmi_values):
+    S = [[] for i in range(0, len(fcmi_values))]
     front = [[]]
-    n = [0 for i in range(0, len(values1))]
-    rank = [0 for i in range(0, len(values1))]
+    n = [0 for i in range(0, len(fcmi_values))]
+    rank = [0 for i in range(0, len(fcmi_values))]
 
-    for p in range(0, len(values1)):
+    for p in range(0, len(fcmi_values)):
         S[p] = []
         n[p] = 0
-        for q in range(0, len(values1)):
-            if (values1[p] > values1[q] and values2[p] < values2[q]) or (
-                    values1[p] >= values1[q] and values2[p] < values2[q]) or (
-                    values1[p] > values1[q] and values2[p] <= values2[q]):
+        for q in range(0, len(fcmi_values)):
+            if (fcmi_values[p] > fcmi_values[q] and affmi_values[p] < affmi_values[q]) or (
+                    fcmi_values[p] >= fcmi_values[q] and affmi_values[p] < affmi_values[q]) or (
+                    fcmi_values[p] > fcmi_values[q] and affmi_values[p] <= affmi_values[q]):
                 if q not in S[p]:
                     S[p].append(q)
-            elif (values1[q] > values1[p] and values2[q] < values2[p]) or (
-                    values1[q] >= values1[p] and values2[q] < values2[p]) or (
-                    values1[q] > values1[p] and values2[q] <= values2[p]):
+            elif (fcmi_values[q] > fcmi_values[p] and affmi_values[q] < affmi_values[p]) or (
+                    fcmi_values[q] >= fcmi_values[p] and affmi_values[q] < affmi_values[p]) or (
+                    fcmi_values[q] > fcmi_values[p] and affmi_values[q] <= affmi_values[p]):
                 n[p] = n[p] + 1
                 # print("n[p]", n[p])
-        if n[p] == 0:
+        if n[p] == 0:   #if p dominates all other points, p is alone in ndf, rank of ndf is 0
             rank[p] = 0
             if p not in front[0]:
                 front[0].append(p)
@@ -75,16 +87,16 @@ def fast_non_dominated_sort(values1, values2):
 # Function to calculate crowding distance
 
 
-def crowding_distance(values1, values2, front):
+def crowding_distance(fcmi_values, affmi_values, front):
     distance = [0 for i in range(0, len(front))]
-    sorted1 = sort_by_values(front, values1[:])
-    sorted2 = sort_by_values(front, values2[:])
+    sorted1 = sort_by_values(front, fcmi_values[:])
+    sorted2 = sort_by_values(front, affmi_values[:])
     distance[0] = 4444444444444444
     distance[len(front) - 1] = 4444444444444444
     for k in range(1, len(front) - 1):
-        distance[k] = distance[k] + (values1[sorted1[k + 1]] - values2[sorted1[k - 1]]) / (max(values1) - min(values1))
+        distance[k] = distance[k] + (fcmi_values[sorted1[k + 1]] - affmi_values[sorted1[k - 1]]) / (max(fcmi_values) - min(fcmi_values))
     for k in range(1, len(front) - 1):
-        distance[k] = distance[k] + (values1[sorted2[k + 1]] - values2[sorted2[k - 1]]) / (max(values2) - min(values2))
+        distance[k] = distance[k] + (fcmi_values[sorted2[k + 1]] - affmi_values[sorted2[k - 1]]) / (max(affmi_values) - min(affmi_values))
     return distance
 
 
@@ -94,7 +106,7 @@ def crowding_distance(values1, values2, front):
 def crossover(a, b, min_x, max_x):
     r = random.random()
     if r > 0.5:
-        return mutation((a + b) / 2, min_x, max_x)
+        return mutation((a + b) / 2, min_x, max_x)  #Find usage of min_x and max_x
     else:
         return mutation((a - b) / 2, min_x, max_x)
 
@@ -107,25 +119,11 @@ def mutation(solution, min_x, max_x):
     return solution
 
 
-# First function to optimize
-
-
-def func_fcmi(x):
-    return x
-
-
-# Second function to optimize
-
-
-def func_affmi(x):
-    return x
-
-
 # Main program starts here
 
 
 def nsga_2(df):
-    pop_size = 20
+    pop_size = 10
     max_gen = 921
 
     # Initialization
@@ -137,7 +135,7 @@ def nsga_2(df):
     print(solution_affmi)
     # press_key = input("press any key to continue ")
     gen_no = 0
-    while gen_no < max_gen:
+    while (gen_no < max_gen):
         function1_values = [func_fcmi(solution_fcmi[i]) for i in range(0, pop_size)]
         function2_values = [func_affmi(solution_affmi[i]) for i in range(0, pop_size)]
         non_dominated_sorted_solution = fast_non_dominated_sort(function1_values[:], function2_values[:])
