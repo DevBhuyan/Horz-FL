@@ -8,6 +8,8 @@ import math
 import random
 import pandas as pd
 import matplotlib.pyplot as plt
+import gc
+gc.enable()
 
 # First function to optimize
 
@@ -122,8 +124,8 @@ def mutation(solution, min_x, max_x):
 # Main program starts here
 
 
-def nsga_2(df):
-    pop_size = 10
+def nsga_2(dataset, df):
+    pop_size = df.shape[0]
     max_gen = 921
 
     # Initialization
@@ -189,9 +191,16 @@ def nsga_2(df):
     print("global feature list", df2)
     # function1 = [i * 1 for i in function1_values]
     # function2 = [j * 1 for j in function2_values]
-    plt.xlabel('Maximize FCMI', fontsize=15)
-    plt.ylabel('Minimize aFFMI', fontsize=15)
-    plt.scatter(function1_values, function2_values)
+    # plt.xlabel('Maximize FCMI', fontsize=15)
+    # plt.ylabel('Minimize aFFMI', fontsize=15)
+    # plt.scatter(function1_values, function2_values)
+    # plt.show()
+    
+    fig, ax = plt.subplots()
+    ax.scatter(function1_values, function2_values)
+    ax.set_xlabel('Maximize FCMI', fontsize=15)
+    ax.set_ylabel('Minimize aFFMI', fontsize=15)
+    ax.set_title('Dataset: '+dataset)
     plt.show()
 
     return df2
