@@ -4,8 +4,8 @@ import pandas as pd
 
 def mutual_information(X, Y, bins):
     c_XY = np.histogram2d(X, Y, bins)[0]
-    c_X = np.histogram(X, bins)[0]
-    c_Y = np.histogram(Y, bins)[0]
+    c_X = np.histogram(X, bins)[0]      #histogram of common occurrences of 1st feature
+    c_Y = np.histogram(Y, bins)[0]      #histogram of common occurrences of 2nd feature
 
     H_X = shan_entropy(c_X)
     H_Y = shan_entropy(c_Y)
@@ -16,8 +16,8 @@ def mutual_information(X, Y, bins):
 
 
 def shan_entropy(c):
-    c_normalized = c / float(np.sum(c))
-    c_normalized = c_normalized[np.nonzero(c_normalized)]
+    c_normalized = c / float(np.sum(c))     #these are probabilities of c
+    c_normalized = c_normalized[np.nonzero(c_normalized)]   #retain non-zero values only
     H = -sum(c_normalized * np.log2(c_normalized))
     return H
 
@@ -34,9 +34,23 @@ def calc_MI(df):
             if ix == jx:
                 matMI[ix, jx] = 0
             else:
-                # print(ix)
-                # print(jx)
                 matMI[ix, jx] = mutual_information(A[:, ix], A[:, jx], bins)
+                # if(ix == 9 and jx == 11):
+                #     X = A[:, ix]
+                #     Y = A[:, jx]
+                #     c_XY = np.histogram2d(X, Y, bins)[0]
+                #     c_X = np.histogram(X, bins)[0]
+                #     c_Y = np.histogram(Y, bins)[0]
+
+                #     H_X = shan_entropy(c_X)
+                #     H_Y = shan_entropy(c_Y)
+                #     H_XY = shan_entropy(c_XY)
+
+                #     print(H_X)
+                #     print(H_Y)
+                #     print(H_XY)
+    # print('PRINTING MAT_MI')
     # print(matMI)
+    # print(matMI.shape)
     df1 = pd.DataFrame(matMI, columns=cols)
     return df1

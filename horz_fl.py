@@ -1,21 +1,21 @@
-from Cluster_kmeans import Cluster_kmeans
+# from Cluster_kmeans import Cluster_kmeans
 import pandas as pd
-import sys
+# import sys
 import os
-from statistics import mean
+# from statistics import mean
 from local_feature_select import local_fs
-from FCMI import FCMI
-from FFMI import FFMI
+# from FCMI import FCMI
+# from FFMI import FFMI
 from learning_randomforest import learning
-from calc_MI import calc_MI
+# from calc_MI import calc_MI
 from global_feature_select import global_feature_select
 from preprocessing import preprocessing_data
 from learning_knn import knn
-from preprocessing import data_part_noniid
-from preprocessing import data_part_iid
+# from preprocessing import data_part_noniid
+# from preprocessing import data_part_iid
 from global_feature_select import global_feature_select_single
     
-def run_iid(f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature):
+def run_iid(dataset, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature):
     # data_part_iid(data_df, n_client, curr_dir, 'ac')
     for cli in range(0, n_client):
         data_dfx = df_list[cli]
@@ -28,8 +28,8 @@ def run_iid(f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature):
         local = local_fs(data_dfx, n_clust_fcmi, n_clust_ffmi, f)
         local_feature.append(local)
         print(local)
-    #feature_list = global_feature_select(local_feature)
-    feature_list = global_feature_select_single(local_feature)
+    feature_list = global_feature_select(dataset, local_feature)
+    # feature_list = global_feature_select_single(local_feature)
     joined_string = ",".join(feature_list)
 
     f.write("\n----Global feature subset----\n")
@@ -105,19 +105,18 @@ def run_noniid():
         f.write("\n knn-5 :" + str(accu) + "\n")
         ROC_AUC_score = learning(data_dfx)
         f.write("\n roc_auc_score :" + str(ROC_AUC_score) + "\n")
-        print(ROC_AUC_score)
     return
 
-def main():
+def main(dataset):
     
     dataset_list = ['ac', 'nsl', 'arcene', 'ionosphere', 'relathe', 'musk', 'TOX-171', 
                     'wdbc', 'vowel', 'wine', 'isolet', 'hillvalley']
     FCMI_clust_num = '2'
     FFMI_clust_num = '2'
-    dataset = dataset_list[4]
+    dataset = dataset
     dataset_type = 'iid'
     cli_num = '5'
-    out_file = 'output_'+dataset+'_2_2_iid_5.txt'
+    out_file = 'multi_obj_output_'+dataset+'_'+FCMI_clust_num+'_'+FFMI_clust_num+'_iid_'+cli_num+'.txt'
     
     curr_dir = os.getcwd()
     print(curr_dir)
@@ -161,7 +160,7 @@ def main():
         if dataset_type == 'noniid':
             run_noniid()
         elif dataset_type == 'iid':          
-            run_iid(f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature)
+            run_iid(dataset, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature)
 
     elif dataset == 'ac':
         data_df = pd.read_csv(curr_dir + "/datasets/annonymized-credit-card/creditcard.csv")
@@ -179,7 +178,7 @@ def main():
 # =============================================================================
             run_noniid()
         elif dataset_type == 'iid':
-            run_iid(f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature)
+            run_iid(dataset, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature)
             
     elif dataset == 'arcene':
         data_df = pd.read_csv(curr_dir + "/datasets/ARCENE.csv")
@@ -193,7 +192,7 @@ def main():
         if dataset_type == 'noniid':
             run_noniid()                
         elif dataset_type == 'iid':
-            run_iid(f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature)
+            run_iid(dataset, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature)
             
     elif dataset == 'ionosphere':
         data_df = pd.read_csv(curr_dir + "/datasets/ionosphere.csv")
@@ -210,7 +209,7 @@ def main():
             run_noniid()
         elif dataset_type == 'iid':          
             # data_part_iid(data_df, n_client, curr_dir)
-            run_iid(f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature)
+            run_iid(dataset, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature)
         
     elif dataset == 'relathe':
         data_df = pd.read_csv(curr_dir + "/datasets/RELATHE.csv")
@@ -227,7 +226,7 @@ def main():
             run_noniid()
         elif dataset_type == 'iid':          
             # data_part_iid(data_df, n_client, curr_dir)
-            run_iid(f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature)
+            run_iid(dataset, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature)
     
     elif dataset == 'musk':
         data_df = pd.read_csv(curr_dir + "/datasets/musk_csv.csv")
@@ -244,7 +243,7 @@ def main():
             run_noniid()
         elif dataset_type == 'iid':          
             # data_part_iid(data_df, n_client, curr_dir)
-            run_iid(f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature)
+            run_iid(dataset, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature)
             
     elif dataset == 'TOX-171':
         data_df = pd.read_csv(curr_dir + "/datasets/TOX-171.csv")
@@ -261,7 +260,7 @@ def main():
             run_noniid()
         elif dataset_type == 'iid':          
             # data_part_iid(data_df, n_client, curr_dir)
-            run_iid(f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature)
+            run_iid(dataset, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature)
             
     elif dataset == 'wdbc':
         data_df = pd.read_csv(curr_dir + "/datasets/WDBC/data.csv")
@@ -272,15 +271,13 @@ def main():
         df3 = data_df.iloc[228:342, :]
         df4 = data_df.iloc[342:456, :]
         df5 = data_df.iloc[456:, :]
-        for i in df1.iloc[1, :]:
-            print(i)
         df_list = [df1, df2, df3, df4, df5]
         if dataset_type == 'noniid':
             # data_part_noniid(data_df, n_client, degree, curr_dir, f)
             run_noniid()
         elif dataset_type == 'iid':          
             # data_part_iid(data_df, n_client, curr_dir)
-            run_iid(f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature)
+            run_iid(dataset, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature)
     
     elif dataset == 'vowel':
         data_df = pd.read_csv(curr_dir + "/datasets/csv_result-dataset_58_vowel.csv")
@@ -298,7 +295,7 @@ def main():
             run_noniid()
         elif dataset_type == 'iid':          
             # data_part_iid(data_df, n_client, curr_dir)
-            run_iid(f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature)
+            run_iid(dataset, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature)
         
     elif dataset == 'wine':
         data_df = pd.read_csv(curr_dir + "/datasets/wine.csv")
@@ -316,7 +313,7 @@ def main():
             run_noniid()
         elif dataset_type == 'iid':          
             # data_part_iid(data_df, n_client, curr_dir)
-            run_iid(f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature)
+            run_iid(dataset, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature)
      
     elif dataset == 'isolet':
         data_df = pd.read_csv(curr_dir + "/datasets/isolet_csv.csv")
@@ -334,7 +331,7 @@ def main():
             run_noniid()
         elif dataset_type == 'iid':          
             # data_part_iid(data_df, n_client, curr_dir)
-            run_iid(f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature)
+            run_iid(dataset, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature)
     
     elif dataset == 'hillvalley':
         data_df = pd.read_csv(curr_dir + "/datasets/hill-valley_csv.csv")
@@ -352,7 +349,7 @@ def main():
             run_noniid()
         elif dataset_type == 'iid':          
             # data_part_iid(data_df, n_client, curr_dir)
-            run_iid(f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature)
+            run_iid(dataset, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature)
     else:
         print("----Wrong Entry----")
 
@@ -360,4 +357,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    dataset_list = ['ac', 'nsl', 'ionosphere', 'musk', 
+                    'wdbc', 'vowel', 'wine', 'isolet', 'hillvalley']
+    for i in dataset_list:
+        print('DATASET NAME: '+i)
+        main(i)

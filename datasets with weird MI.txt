@@ -1,0 +1,4 @@
+hillvalley: high aFFMI
+ionosphere: high aFFMI
+vowel: high FCMI
+wine: high aFFMI and FCMI

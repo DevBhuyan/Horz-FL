@@ -1,7 +1,7 @@
-from package1.Cluster_kmeans import Cluster_kmeans
-from package1.calc_MI import calc_MI
-from package1.learning_randomforest import learning
-from package1.learning_knn import knn
+from Cluster_kmeans import Cluster_kmeans
+from calc_MI import calc_MI
+from learning_randomforest import learning
+from learning_knn import knn
 import pandas as pd
 
 
@@ -16,10 +16,10 @@ def local_fs(data_df, n_clust_fcmi, n_clust_ffmi, f):
     cols.pop()  # contains all features except class
     for col in cols:
         avg_Ffmi.append(ffmi[col].mean())  # average ffmi
-    # print(avg_Ffmi)
+    print('Average FFMI: ', avg_Ffmi)
     list_fcmi = Fcmi['Class'].values.tolist()
     list_fcmi.pop()  # deleting the last value as it always comes zero
-    # print(list_fcmi)
+    print('List_FCMI: ', list_fcmi)
     MI = {'Fcmi': list_fcmi,
           'FFmi': avg_Ffmi}
     # print("MI = ", MI)
@@ -93,3 +93,29 @@ def local_fs(data_df, n_clust_fcmi, n_clust_ffmi, f):
     data_df.drop(data_df.columns.difference(col), 1, inplace=True)
     # print(data_df.head())
     return local_feature
+
+
+def fcmi_and_affmi(data_df):
+    MI_Fcmi = []
+    MI_Ffmi = []
+    avg_Ffmi = []
+    mi = calc_MI(data_df)
+    Fcmi = mi.iloc[:, -1:]
+    ffmi = mi.iloc[:, :-1]
+    cols = list(mi.columns)
+    cols.pop()  # contains all features except class
+    for col in cols:
+        avg_Ffmi.append(ffmi[col].mean())  # average ffmi
+    list_fcmi = Fcmi['Class'].values.tolist()
+    list_fcmi.pop()  # deleting the last value as it always comes zero
+    MI = {'Fcmi': list_fcmi,
+          'FFmi': avg_Ffmi}
+    # print("MI = ", MI)
+    MI_df = pd.DataFrame(MI)
+    for i in range(0, len(list_fcmi)):
+        MI_Fcmi.append([list_fcmi[i], 0])  # preparing fcmi values for 2D clustering
+    for i in range(0, len(avg_Ffmi)):
+        MI_Ffmi.append([avg_Ffmi[i], 0])  # preparing ffmi values for 2D clustering
+    # print('PRINTING MI')
+    # print(mi)
+    return list_fcmi, avg_Ffmi
