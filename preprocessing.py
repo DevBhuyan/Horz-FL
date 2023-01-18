@@ -1,6 +1,5 @@
 import pandas as pd
 
-
 def preprocessing_data(data_df, dataset_name):
     if dataset_name == 'dc':
         data_df = data_df.rename(columns={'Y': 'Class'})
@@ -11,7 +10,7 @@ def preprocessing_data(data_df, dataset_name):
         data_df.drop(['protocol_type', 'service', 'flag'], axis=1, inplace=True)
         # print(data_df['class'])
     if dataset_name == 'ac':
-        data_df.drop(['Time', ], axis=1, inplace=True)
+        data_df.drop(['Time'], axis=1, inplace=True)
     if dataset_name == 'musk':
         data_df.drop(['molecule_name', 'conformation_name'], axis = 1, inplace = True)
     if dataset_name == 'wdbc':
@@ -23,13 +22,19 @@ def preprocessing_data(data_df, dataset_name):
                                          'Penny': '6', 'Rose': '7', 'Mike': '8', 'Nick': '9', 'Rich': '10', 'Tim': '11', 
                                          'Sarah': '12', 'Sue': '13', 'Wendy': '14'})
         data_df = data_df.replace(regex={'hid': 0, 'hEd': 1, 'hAd': 2, 'hYd': 3, 'hOd': 4, 'hUd': 5,
-                                         'hId': 6, 'had': 7, 'hod': 8, 'hud': 9, 'hed': 10, 'hyd': 11})
+                                         'hId': 0, 'had': 2, 'hod': 4, 'hud': 5, 'hed': 1, 'hyd': 3})
     if dataset_name == 'isolet':
         data_df = data_df.replace(regex={"'1'": 1, "'2'": 2, "'3'": 3, "'4'": 4, "'5'": 5, "'6'": 6, "'7'": 7,
                                          "'8'": 8, "'9'": 9, "'10'": 10, "'11'": 11, "'12'": 12, "'13'": 13,
                                          "'14'": 14, "'15'": 15, "'16'": 16, "'17'": 17, "'18'": 18, "'19'": 19,
                                          "'20'": 20, "'21'": 21, "'22'": 22, "'23'": 23, "'24'": 24, "'25'": 25,
                                          "'26'": 26})
+        
+    try:
+        data_df = data_df.rename(columns={'class': 'Class'})
+    except:
+        pass
+    
     return data_df.astype(float)
 
 
