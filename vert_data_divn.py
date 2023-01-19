@@ -2,6 +2,7 @@ import pandas as pd
 from preprocessing import preprocessing_data
 import os
 from math import ceil
+from random import randint
 
 def divide(data_df, dataset, n_client):
     
@@ -9,11 +10,24 @@ def divide(data_df, dataset, n_client):
     data_df = preprocessing_data(data_df, dataset)
     data_df = data_df.sample(frac = 1)
     ftrs = len(data_df.columns) - 1
+    prev = 0
+    print(data_df.columns)
     for i in range(n_client):
-        df = data_df.iloc[:, ceil((i)*ftrs/n_client):ceil((i+1)*ftrs/n_client)]
+        nxt = randint(ceil((i+0.5)*ftrs/(n_client)), ceil((i+1.5)*ftrs/(n_client)))
+        if i == 0:
+            lb = 0
+            ub = nxt
+        if i == n_client-1:
+            lb = prev
+            ub = ftrs
+        else:
+            lb = prev
+            ub = nxt
+        df = data_df.iloc[:, lb:ub]
         df = df.assign(Class = data_df['Class'])
         df_list.append(df)
         print(df)
+        prev = nxt
         
     return df_list
 
