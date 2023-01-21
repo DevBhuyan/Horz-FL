@@ -3,36 +3,25 @@ from local_feature_select import local_fs
 from global_feature_select import global_feature_select, global_feature_select_single
 from learning_knn import knn
 from learning_randomforest import learning
-import os
 
-lftr = []
-max_roc = 0.0
-df_list = []
-
-def run_iid(num_ftr, n_client, n_clust_fcmi, n_clust_ffmi, f, dataset):
+def run_iid(n_client, df_list, n_clust_fcmi, n_clust_ffmi, f, dataset):
     
-    global lftr
-    global df_list
     local_feature = []
-    
-    if num_ftr == 12:
-        df_list = vert_data_divn(dataset, n_client)
-        for cli in range(0, n_client):
-            data_dfx = df_list[cli]
-            print("cli = ", cli)
-            f.write("\n----Client : " + str(cli + 1) + "----\n")
-            # print(data_dfx.columns)
-            # print(data_dfx.head())
-            f.write("\n features with this client: " + str(data_dfx.columns))
-            f.write("\n fcmi cluster:" + str(n_clust_ffmi) + "\n")
-            f.write("\n affmi cluster:" + str(n_clust_ffmi) + "\n")
-            local = local_fs(data_dfx, n_clust_fcmi, n_clust_ffmi, f)
-            local_feature.append(local)
-            # print(local)
-        lftr = local_feature
-        # print(lftr)
+
+    for cli in range(0, n_client):
+        data_dfx = df_list[cli]
+        print("cli = ", cli)
+        f.write("\n----Client : " + str(cli + 1) + "----\n")
+        # print(data_dfx.columns)
+        # print(data_dfx.head())
+        f.write("\n fcmi cluster:" + str(n_clust_ffmi) + "\n")
+        f.write("\n affmi cluster:" + str(n_clust_ffmi) + "\n")
+        local = local_fs(data_dfx, n_clust_fcmi, n_clust_ffmi, f)
+        local_feature.append(local)
+        # print(local)
+    lftr = local_feature
     # feature_list = global_feature_select(dataset, local_feature)
-    feature_list = global_feature_select_single(lftr, num_ftr)
+    feature_list = global_feature_select_single(lftr)
     joined_string = ",".join(feature_list)
 
     f.write("\n----Global feature subset----\n")
@@ -41,6 +30,8 @@ def run_iid(num_ftr, n_client, n_clust_fcmi, n_clust_ffmi, f, dataset):
     f.write("\n")
     # print(feature_list)
     roc = []
+    knn3 = []
+    knn5 = []
     for cli in range(0, n_client):
         data_dfx = df_list[cli]
         print("cli = ", cli)
@@ -52,22 +43,26 @@ def run_iid(num_ftr, n_client, n_clust_fcmi, n_clust_ffmi, f, dataset):
         data_dfx = data_dfx[data_dfx.columns.intersection(feature_list)]
         data_dfx = data_dfx.assign(Class = df1)
         accu = knn(data_dfx, 3)
-        print("knn-3:", accu)
+        # print("knn-3:", accu)
+        knn3.append(accu)
         f.write("\n knn-3 :" + str(accu) + "\n")
         accu = knn(data_dfx, 5)
-        print("knn-5:", accu)
+        # print("knn-5:", accu)
+        knn5.append(accu)
         f.write("\n knn-5 :" + str(accu) + "\n")
         ROC_AUC_score = learning(data_dfx, dataset)
         f.write("\n roc_auc_score :" + str(ROC_AUC_score) + "\n")
         roc.append(ROC_AUC_score)
     roc_avg = sum(roc)/len(roc)
+    knn3avg = sum(knn3)/len(knn3)
+    knn5avg = sum(knn5)/len(knn5)
     f.write("\n roc avg: " + str(roc_avg) + "\n")
-    # acc = package1.federated_forest.fed_tree(10, n_client, 'rf', feature_list)
-    # rf = random forest , tree = decision tree , gbdt = gradient boost tree
-    # XGBOOST
+    print(knn3avg)
+    print(knn5avg)
+    print(roc_avg)
     return roc_avg
 
-def main(dataset, num_ftr):
+def main(dataset):
     
     global max_roc
     
@@ -78,7 +73,7 @@ def main(dataset, num_ftr):
     dataset = dataset
     dataset_type = 'iid'
     cli_num = '5'
-    out_file = 'vertical_single_obj_output_'+dataset+'_'+FCMI_clust_num+'_'+FFMI_clust_num+'_iid_'+cli_num+'num_ftr'+str(num_ftr)+'.txt'
+    out_file = 'delcxnhcngmj'+dataset+'_'+FCMI_clust_num+'_'+FFMI_clust_num+'_iid_'+cli_num+'.txt'
     
     f = open(out_file, "w")
     f.write("\n---------command line arguments-----------\n ")
@@ -103,23 +98,12 @@ def main(dataset, num_ftr):
     n_client = int(cli_num)
     # degree = float(sys.argv[7])
     
-    roc_avg = run_iid(num_ftr, n_client, n_clust_fcmi, n_clust_ffmi, f, dataset)
-    
-    roc_avg = float(roc_avg)
-    if roc_avg > max_roc+0.0001:
-        print('roc_avg > max_roc? ', roc_avg > max_roc+0.0001)
-        print('roc_avg: ', roc_avg)
-        print('max_roc: ', max_roc)
-        f.close()
-        max_roc = roc_avg
-    else:
-        f.close()
-        os.remove(out_file)
+    df_list = vert_data_divn(dataset, n_client)
+    roc_avg = run_iid(n_client, df_list, n_clust_fcmi, n_clust_ffmi, f, dataset)
 
 if __name__ == "__main__":
-    dataset_list = ['ac', 'nsl', 'ionosphere', 'musk', 
-                    'wdbc', 'vowel', 'wine', 'isolet', 'hillvalley']
-    i = 'nsl'     
-    for num_ftr in range(12, 38):
-        print('DATASET NAME: '+i)
-        main(i, num_ftr)
+    dataset_list = ['isolet', 'hillvalley']
+    
+    for dataset in dataset_list:
+        print('DATASET NAME: '+dataset)
+        main(dataset)
