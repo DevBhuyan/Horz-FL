@@ -107,9 +107,9 @@ def main(dataset, num_ftr):
     
     roc_avg = float(roc_avg)
     if roc_avg > max_roc+0.0001:
-        print('roc_avg > max_roc? ', roc_avg > max_roc+0.0001)
-        print('roc_avg: ', roc_avg)
-        print('max_roc: ', max_roc)
+        #print('roc_avg > max_roc? ', roc_avg > max_roc+0.0001)
+        #print('roc_avg: ', roc_avg)
+        #print('max_roc: ', max_roc)
         f.close()
         max_roc = roc_avg
     else:
@@ -120,6 +120,6 @@ if __name__ == "__main__":
     dataset_list = ['ac', 'nsl', 'ionosphere', 'musk', 
                     'wdbc', 'vowel', 'wine', 'isolet', 'hillvalley']
     i = 'nsl'     
-    for num_ftr in range(12, 38):
+    for num_ftr in range(12, 13):
         print('DATASET NAME: '+i)
         main(i, num_ftr)
