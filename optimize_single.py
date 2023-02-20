@@ -15,22 +15,26 @@ from learning_knn import knn
 from global_feature_select import global_feature_select_single
 
 max_roc = 0.0
+lftr = []
 
 def run_iid(dataset, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature, num_ftr):
+    global lftr
     # data_part_iid(data_df, n_client, curr_dir, 'ac')
-    for cli in range(0, n_client):
-        data_dfx = df_list[cli]
-        print("cli = ", cli)
-        f.write("\n----Client : " + str(cli + 1) + "----\n")
-        # print(data_dfx.columns)
-        # print(data_dfx.head())
-        f.write("\n fcmi cluster:" + str(n_clust_ffmi) + "\n")
-        f.write("\n affmi cluster:" + str(n_clust_ffmi) + "\n")
-        local = local_fs(data_dfx, n_clust_fcmi, n_clust_ffmi, f)
-        local_feature.append(local)
-        # print(local)
+    if num_ftr == 4:
+        for cli in range(0, n_client):
+            data_dfx = df_list[cli]
+            print("cli = ", cli)
+            f.write("\n----Client : " + str(cli + 1) + "----\n")
+            # print(data_dfx.columns)
+            # print(data_dfx.head())
+            f.write("\n fcmi cluster:" + str(n_clust_ffmi) + "\n")
+            f.write("\n affmi cluster:" + str(n_clust_ffmi) + "\n")
+            local = local_fs(data_dfx, n_clust_fcmi, n_clust_ffmi, f)
+            local_feature.append(local)
+            # print(local)
+        lftr = local_feature
     # feature_list = global_feature_select(dataset, local_feature)
-    feature_list = global_feature_select_single(local_feature, num_ftr)
+    feature_list = global_feature_select_single(lftr, num_ftr)
     joined_string = ",".join(feature_list)
 
     f.write("\n----Global feature subset----\n")
@@ -55,12 +59,9 @@ def run_iid(dataset, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_fea
         accu = knn(data_dfx, 5)
         print("knn-5:", accu)
         f.write("\n knn-5 :" + str(accu) + "\n")
-        try:
-            ROC_AUC_score = learning(data_dfx)
-            f.write("\n roc_auc_score :" + str(ROC_AUC_score) + "\n")
-            roc.append(ROC_AUC_score)
-        except:
-            pass
+        ROC_AUC_score = learning(data_dfx, dataset)
+        f.write("\n roc_auc_score :" + str(ROC_AUC_score) + "\n")
+        roc.append(ROC_AUC_score)
     roc_avg = sum(roc)/len(roc)
     f.write("\n roc avg: " + str(roc_avg) + "\n")
     # acc = package1.federated_forest.fed_tree(10, n_client, 'rf', feature_list)
@@ -79,7 +80,7 @@ def main(dataset, num_ftr):
     dataset = dataset
     dataset_type = 'iid'
     cli_num = '5'
-    out_file = 'test_single_obj_output_'+dataset+'_'+FCMI_clust_num+'_'+FFMI_clust_num+'_iid_'+cli_num+'num_ftr'+str(num_ftr)+'.txt'
+    out_file = 'test2_single_obj_output_'+dataset+'_'+FCMI_clust_num+'_'+FFMI_clust_num+'_iid_'+cli_num+'num_ftr'+str(num_ftr)+'.txt'
     
     curr_dir = os.getcwd()
     print(curr_dir)
@@ -102,9 +103,6 @@ def main(dataset, num_ftr):
     f.write("\n-----------------------------------------\n ")
 
     local_feature = []
-# =============================================================================
-#     feature_list = []
-# =============================================================================
     n_clust_fcmi = int(FCMI_clust_num)
     n_clust_ffmi = int(FFMI_clust_num)
     n_client = int(cli_num)
@@ -123,7 +121,7 @@ def main(dataset, num_ftr):
         if dataset_type == 'noniid':
             run_noniid()
         elif dataset_type == 'iid':          
-            roc_avg = run_iid(data_df, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature, num_ftr)
+            roc_avg = run_iid(dataset, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature, num_ftr)
 
     elif dataset == 'ac':
         data_df = pd.read_csv(curr_dir + "/datasets/annonymized-credit-card/creditcard.csv")
@@ -136,12 +134,9 @@ def main(dataset, num_ftr):
         df5 = data_df.iloc[228000:, :]
         df_list = [df1, df2, df3, df4, df5]
         if dataset_type == 'noniid':
-# =============================================================================
-#             data_part_noniid(data_df, n_client, degree, curr_dir, f, 'ac')
-# =============================================================================
             run_noniid()
         elif dataset_type == 'iid':
-            roc_avg = run_iid(data_df, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature, num_ftr)
+            roc_avg = run_iid(dataset, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature, num_ftr)
             
     elif dataset == 'arcene':
         data_df = pd.read_csv(curr_dir + "/datasets/ARCENE.csv")
@@ -155,7 +150,7 @@ def main(dataset, num_ftr):
         if dataset_type == 'noniid':
             run_noniid()                
         elif dataset_type == 'iid':
-            roc_avg = run_iid(data_df, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature,num_ftr)
+            roc_avg = run_iid(dataset, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature, num_ftr)
             
     elif dataset == 'ionosphere':
         data_df = pd.read_csv(curr_dir + "/datasets/ionosphere.csv")
@@ -172,8 +167,8 @@ def main(dataset, num_ftr):
             run_noniid()
         elif dataset_type == 'iid':          
             # data_part_iid(data_df, n_client, curr_dir)
-            roc_avg = run_iid(data_df, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature, num_ftr)
-        
+            roc_avg = run_iid(dataset, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature, num_ftr)
+            
     elif dataset == 'relathe':
         data_df = pd.read_csv(curr_dir + "/datasets/RELATHE.csv")
         data_df = preprocessing_data(data_df, dataset)
@@ -189,7 +184,7 @@ def main(dataset, num_ftr):
             run_noniid()
         elif dataset_type == 'iid':          
             # data_part_iid(data_df, n_client, curr_dir)
-            roc_avg = run_iid(data_df, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature, num_ftr)
+            roc_avg = run_iid(dataset, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature, num_ftr)
     
     elif dataset == 'musk':
         data_df = pd.read_csv(curr_dir + "/datasets/musk_csv.csv")
@@ -206,7 +201,7 @@ def main(dataset, num_ftr):
             run_noniid()
         elif dataset_type == 'iid':          
             # data_part_iid(data_df, n_client, curr_dir)
-            roc_avg = run_iid(data_df, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature, num_ftr)
+            roc_avg = run_iid(dataset, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature, num_ftr)
             
     elif dataset == 'TOX-171':
         data_df = pd.read_csv(curr_dir + "/datasets/TOX-171.csv")
@@ -223,7 +218,7 @@ def main(dataset, num_ftr):
             run_noniid()
         elif dataset_type == 'iid':          
             # data_part_iid(data_df, n_client, curr_dir)
-            roc_avg = run_iid(data_df, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature, num_ftr)
+            roc_avg = run_iid(dataset, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature, num_ftr)
             
     elif dataset == 'wdbc':
         data_df = pd.read_csv(curr_dir + "/datasets/WDBC/data.csv")
@@ -240,7 +235,7 @@ def main(dataset, num_ftr):
             run_noniid()
         elif dataset_type == 'iid':          
             # data_part_iid(data_df, n_client, curr_dir)
-            roc_avg = run_iid(data_df, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature, num_ftr)
+            roc_avg = run_iid(dataset, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature, num_ftr)
     
     elif dataset == 'vowel':
         data_df = pd.read_csv(curr_dir + "/datasets/csv_result-dataset_58_vowel.csv")
@@ -258,7 +253,7 @@ def main(dataset, num_ftr):
             run_noniid()
         elif dataset_type == 'iid':          
             # data_part_iid(data_df, n_client, curr_dir)
-            roc_avg = run_iid(data_df, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature, num_ftr)
+            roc_avg = run_iid(dataset, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature, num_ftr)
         
     elif dataset == 'wine':
         data_df = pd.read_csv(curr_dir + "/datasets/wine.csv")
@@ -276,7 +271,7 @@ def main(dataset, num_ftr):
             run_noniid()
         elif dataset_type == 'iid':          
             # data_part_iid(data_df, n_client, curr_dir)
-            roc_avg = run_iid(data_df, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature, num_ftr)
+            roc_avg = run_iid(dataset, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature, num_ftr)
      
     elif dataset == 'isolet':
         data_df = pd.read_csv(curr_dir + "/datasets/isolet_csv.csv")
@@ -294,7 +289,7 @@ def main(dataset, num_ftr):
             run_noniid()
         elif dataset_type == 'iid':          
             # data_part_iid(data_df, n_client, curr_dir)
-            roc_avg = run_iid(data_df, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature, num_ftr)
+            roc_avg = run_iid(dataset, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature, num_ftr)
     
     elif dataset == 'hillvalley':
         data_df = pd.read_csv(curr_dir + "/datasets/hill-valley_csv.csv")
@@ -312,7 +307,7 @@ def main(dataset, num_ftr):
             run_noniid()
         elif dataset_type == 'iid':          
             # data_part_iid(data_df, n_client, curr_dir)
-            roc_avg = run_iid(data_df, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature, num_ftr)
+            roc_avg = run_iid(dataset, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature, num_ftr)
       
     roc_avg = float(roc_avg)
     if roc_avg > max_roc:
@@ -330,7 +325,7 @@ def main(dataset, num_ftr):
 if __name__ == "__main__":
     dataset_list = ['ac', 'nsl', 'ionosphere', 'musk', 
                     'wdbc', 'vowel', 'wine', 'isolet', 'hillvalley']
-    i = 'nsl'
-    for num_ftr in range(4, 38):
+    i = 'relathe'     
+    for num_ftr in range(4, 4000):
         print('DATASET NAME: '+i)
         main(i, num_ftr)
