@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 from vert_data_divn import vert_data_divn
 from local_feature_select import local_fs
 from global_feature_select import global_feature_select, global_feature_select_single

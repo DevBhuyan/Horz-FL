@@ -1,0 +1,254 @@
+import numpy as np
+import pandas as pd
+from mpi4py import MPI
+from datetime import *
+from SSCalculation import *
+import math
+import time
+from math import ceil
+import pickle
+
+np.random.seed(10)
+clientNum = 5
+
+class LeastSquareLoss:
+    def gradient(self, actual, predicted):
+        return -(actual - predicted)
+
+    def hess(self, actual, predicted):
+        return np.ones_like(actual)
+
+class LogLoss():
+    def gradient(self, actual, predicted):
+        prob = 1.0 / (1.0 + np.exp(-predicted))
+        return prob - actual
+
+    def hess(self, actual, predicted):
+        prob = 1.0 / (1.0 + np.exp(-predicted))
+        return prob * (1.0 - prob) # Mind the dimension
+
+class VerticalXGBoostClassifier:
+
+    def __init__(self, rank, lossfunc, splitclass, _lambda=1, _gamma=0.5, _epsilon=0.1, n_estimators=3, max_depth=3):
+        if lossfunc == 'LogLoss':
+            self.loss = LogLoss()
+        else:
+            self.loss = LeastSquareLoss()
+        self._lambda = _lambda
+        self._gamma = _gamma
+        self._epsilon = _epsilon
+        self.n_estimators = n_estimators  # Number of trees
+        self.max_depth = max_depth  # Maximum depth for tree
+        self.rank = rank
+        self.trees = []
+        self.splitclass = splitclass
+        for _ in range(n_estimators):
+            tree = VerticalXGBoostTree(rank=self.rank,
+                                       lossfunc=self.loss,
+                                       splitclass=self.splitclass,
+                                       _lambda=self._lambda,
+                                        _gamma=self._gamma,
+                                       _epsilon=self._epsilon,
+                                       _maxdepth=self.max_depth,
+                                       clientNum=clientNum)
+            self.trees.append(tree)
+
+    def getQuantile(self, colidx):
+        split_list = []
+        if self.rank != 0: # For client nodes
+            data = self.data.copy()
+            idx = np.argsort(data[:, colidx], axis=0)
+            data = data[idx]
+            value_list = sorted(list(set(list(data[:, colidx]))))  # Record all the different value
+            hess = np.ones_like(data[:, colidx])
+            data = np.concatenate((data, hess.reshape(-1, 1)), axis=1)
+            sum_hess = np.sum(hess)
+            last = value_list[0]
+            i = 1
+            if len(value_list) == 1: # For those who has only one value, do such process.
+                last_cursor = last
+            else:
+                last_cursor = value_list[1]
+            split_list.append((-np.inf, value_list[0]))
+            while i < len(value_list):
+                cursor = value_list[i]
+                small_hess = np.sum(data[:, -1][data[:, colidx] <= last]) / sum_hess
+                big_hess = np.sum(data[:, -1][data[:, colidx] <= cursor]) / sum_hess
+                if np.abs(big_hess - small_hess) < self._epsilon:
+                    last_cursor = cursor
+                else:
+                    judge = value_list.index(cursor) - value_list.index(last)
+                    if judge == 1: # Although it didn't satisfy the criterion, it has no more split, so we must add it.
+                        split_list.append((last, cursor))
+                        last = cursor
+                    else: # Move forward and record the last.
+                        split_list.append((last, last_cursor))
+                        last = last_cursor
+                        last_cursor = cursor
+                i += 1
+            if split_list[-1][1] != value_list[-1]:
+                split_list.append((split_list[-1][1], value_list[-1]))  # Add the top value into split_list.
+            split_list = np.array(split_list)
+        return split_list
+
+    def getAllQuantile(self): # Global quantile, must be calculated before tree building, avoiding recursion.
+        self_maxlen = 0
+        if self.rank != 0:
+            dict = {i:self.getQuantile(i) for i in range(self.data.shape[1])} # record all the split
+            self_maxlen = max([len(dict[i]) for i in dict.keys()])
+        else:
+            dict = {}
+
+        recv_maxlen = comm.gather(self_maxlen, root=1)
+        maxlen = None
+        if self.rank == 1:
+            maxlen = max(recv_maxlen)
+
+        self.maxSplitNum = comm.bcast(maxlen, root=1)
+        # print('MaxSplitNum: ', self.maxSplitNum)
+        self.quantile = dict
+
+    def fit(self, X, y):
+        data_num = X.shape[0]
+        y = np.reshape(y, (data_num, 1))
+        y_pred = np.zeros(np.shape(y))
+        self.data = X.copy()
+        self.getAllQuantile()
+        for i in range(self.n_estimators):
+            # print('In classifier fit, rank: ', self.rank)
+            tree = self.trees[i]
+            tree.data, tree.maxSplitNum, tree.quantile = self.data, self.maxSplitNum, self.quantile
+            y_and_pred = np.concatenate((y, y_pred), axis=1)
+            tree.fit(y_and_pred, i)
+            if i == self.n_estimators - 1: # The last tree, no need for prediction update.
+                continue
+            else:
+                update_pred = tree.predict(X)
+            if self.rank == 1:
+                # print('test')
+                update_pred = np.reshape(update_pred, (data_num, 1))
+                y_pred += update_pred
+
+    def predict(self, X):
+        y_pred = None
+        data_num = X.shape[0]
+        # Make predictions
+        for tree in self.trees:
+            # Estimate gradient and update prediction
+            update_pred = tree.predict(X)
+            if y_pred is None:
+                y_pred = np.zeros_like(update_pred).reshape(data_num, -1)
+            if self.rank == 1:
+                update_pred = np.reshape(update_pred, (data_num, 1))
+                y_pred += update_pred
+        return y_pred
+
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+
+
+def vert_xgb():
+                      
+    # A df_list will be provided with the reduced features returned from each client
+    # Extract class info into y_train
+    # Split data evenly into train and test
+    # Convert into numpy arrays and send to X_train_A and its likes
+    with open('dataframes.pkl', 'rb') as f1:
+        df_list = pickle.load(f1)
+    
+    l = df_list[0].shape[0]
+    y = df_list[0].iloc[:, -1]
+    y_test = y.iloc[ceil(0.8*l):]
+    y_train = y.iloc[:ceil(0.8*l)]
+    y_train = y_train.to_numpy()
+    y_test = y_test.to_numpy()
+    
+    x_train = []
+    x_test = []
+    for df in df_list:
+        x_train.append(df.iloc[:ceil(0.8*l)].to_numpy())
+        x_test.append(df.iloc[ceil(0.8*l):].to_numpy())
+        
+    for i, x in enumerate(x_train):
+        print(f'x_train[{i}].shape: {x.shape}')
+    for i, x in enumerate(x_test):
+        print(f'x_test[{i}].shape: {x.shape}')
+    print(f'y_train.shape: {y_train.shape}')
+    print(f'y_test.shape: {y_test.shape}')
+
+    splitclass = SSCalculate()
+    model = VerticalXGBoostClassifier(rank=rank, lossfunc='LogLoss', splitclass=splitclass, max_depth=3, n_estimators=3, _epsilon=0.1)
+
+    start = datetime.now()
+    if rank == 1:
+        model.fit(x_train[rank-1], y_train)
+        end = datetime.now()
+        print('In fitting 1: ', end - start)
+        time = end - start
+        for i in range(clientNum + 1):
+            if i == 1:
+                pass
+            else:
+                time += comm.recv(source=i)
+        print('Average time taken across all processes: ', time / (clientNum + 1))
+        final_time = datetime.now() - start
+        print('end 1')
+        print('Total time elapsed: ', final_time)
+    elif rank == 2:
+        model.fit(x_train[rank-1], np.zeros_like(y_train))
+        end = datetime.now()
+        comm.send(end - start, dest=1)
+        print('In fitting 2: ', end - start)
+        print('end 2')
+    elif rank == 3:
+        model.fit(x_train[rank-1], np.zeros_like(y_train))
+        end = datetime.now()
+        print('In fitting 3: ', end - start)
+        comm.send(end - start, dest=1)
+        print('end 3')
+    elif rank == 4:
+        model.fit(x_train[rank-1], np.zeros_like(y_train))
+        end = datetime.now()
+        print('In fitting 4: ', end - start)
+        comm.send(end - start, dest=1)
+        print('end 4')
+    elif rank == 5:
+        model.fit(x_train[rank-1], np.zeros_like(y_train))
+        end = datetime.now()
+        print('In fitting 5: ', end - start)
+        comm.send(end - start, dest=1)
+        print('end 5')
+    else:
+        model.fit(np.zeros_like(x_train[1]), np.zeros_like(y_train))
+        end = datetime.now()
+        print('In fitting 0: ', end - start)
+        comm.send(end - start, dest=1)
+        print('end 0')
+
+    if rank == 1:
+        y_pred = model.predict(x_test[rank-1])
+    elif rank == 2:
+        y_pred = model.predict(x_test[rank-1])
+    elif rank == 3:
+        y_pred = model.predict(x_test[rank-1])
+    elif rank == 4:
+        y_pred = model.predict(x_test[rank-1])
+    elif rank == 5:
+        y_pred = model.predict(x_test[rank-1])
+    else:
+        model.predict(np.zeros_like(x_test[1]))
+
+    if rank == 1:
+        y_pred = 1.0 / (1.0 + np.exp(-y_pred))
+        y_pred2 = y_pred.copy()
+        y_pred2[y_pred2 > 0.5] = 1
+        y_pred2[y_pred2 <= 0.5] = 0
+        y_pred2 = y_pred2.reshape(-1,1)
+        y_test = y_test.reshape(-1,1)
+        result = y_pred2 - y_test
+        print('XGBoost_Accuracy: ', np.sum(result == 0) / y_pred.shape[0])
+
+
+if __name__ == '__main__':
+    vert_xgb()
+
