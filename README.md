@@ -11,3 +11,9 @@ Results for Vertical FL: https://docs.google.com/spreadsheets/d/1AhT5rjR4Mjvj4jz
 [MULTI OBJECTIVE]
 
 Results for Horizontal FL: https://docs.google.com/spreadsheets/d/1i4_i1HTf-GaXgdecyHVzbZbRRcABwjiH/edit?usp=sharing&ouid=106484725031798016662&rtpof=true&sd=true
+
+Results for Vertical FL: https://docs.google.com/spreadsheets/d/15XXv7U1WbPrbcOv04qdjpwbckBpo_6qf/edit?usp=sharing&ouid=106484725031798016662&rtpof=true&sd=true
+
+[REDUCTION IN FEATURES]
+
+https://docs.google.com/spreadsheets/d/1vt-x6pIJHit1JYQj7cZR1-d9Zl3K8c7zhpaTolGd9PA/edit?usp=sharing
