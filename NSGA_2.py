@@ -27,7 +27,7 @@ def fast_non_dominated_sort(df_copy):
     return fronts
 
 # Main program starts here
-def nsga_2(dataset, df, num_fronts = 1):
+def nsga_2(dataset, df):
     
     # Initialization
     df_copy = df.copy(deep = True)
@@ -43,5 +43,7 @@ def nsga_2(dataset, df, num_fronts = 1):
         for df in front:
             ftrs_in_front.append(df['features'])
         ftrs_in_fronts.append(ftrs_in_front)
+        
+    print('Pareto fronts: ', ftrs_in_fronts)
         
     return ftrs_in_fronts

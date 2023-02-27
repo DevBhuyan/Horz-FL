@@ -3,24 +3,25 @@
 
 from vert_data_divn import vert_data_divn
 from local_feature_select import local_fs
-from global_feature_select import global_feature_select, global_feature_select_single
+from global_feature_select import global_feature_select
 from learning_knn import knn
 from learning_randomforest import learning
 import os
-import pickle
+# import pickle
 
-import subprocess
+# import subprocess
 
-command = ['mpiexec', '-n', '6', 'python', 'VerticalXGBoost.py']
+# command = ['mpiexec', '-n', '6', 'python', 'VerticalXGBoost.py']
 
 dataset_list = ['ac', 'nsl', 'ionosphere', 'musk', 
                 'wdbc', 'vowel', 'wine', 'isolet', 'hillvalley']   
 dataset = 'nsl'
-lb = 31
-ub = 32
+lb = 8
+ub = 41
 
 lftr = []
-max_roc = 0.0
+roc_cp = 0.9
+max_roc = roc_cp
 df_list = []
 
 def run_iid(num_ftr, n_client, n_clust_fcmi, n_clust_ffmi, f, dataset):
@@ -35,35 +36,31 @@ def run_iid(num_ftr, n_client, n_clust_fcmi, n_clust_ffmi, f, dataset):
             data_dfx = df_list[cli]
             print("cli = ", cli)
             f.write("\n----Client : " + str(cli + 1) + "----\n")
-            # print(data_dfx.columns)
-            # print(data_dfx.head())
             f.write("\n features with this client: " + str(data_dfx.columns))
             f.write("\n fcmi cluster:" + str(n_clust_ffmi) + "\n")
             f.write("\n affmi cluster:" + str(n_clust_ffmi) + "\n")
             local = local_fs(data_dfx, n_clust_fcmi, n_clust_ffmi, f)
             local_feature.append(local)
-            # print(local)
         lftr = local_feature
-    feature_list = global_feature_select_single(lftr, num_ftr)
+    feature_list = global_feature_select(dataset, lftr, num_ftr)
+    print('feature list: ', feature_list)
+    print('number of features: ', len(feature_list))
     joined_string = ",".join(feature_list)
 
     f.write("\n----Global feature subset----\n")
     f.write(joined_string)
     f.write("\n number of global feature subset :" + str(len(feature_list)))
     f.write("\n")
-    # print(feature_list)
     roc = []
-    dataframes_to_xgb = []
+    # dataframes_to_xgb = []
     for cli in range(0, n_client):
         data_dfx = df_list[cli]
         print("cli = ", cli)
-        # print(data_dfx.columns)
-        # print(len(data_dfx.columns))
-        df1 = data_dfx.iloc[:, -1]
+        df_class = data_dfx.iloc[:, -1]
 
         f.write("\n----Learning on Global features--------\n" + " Client : " + str(cli + 1) + "----\n")
         data_dfx = data_dfx[data_dfx.columns.intersection(feature_list)]
-        data_dfx = data_dfx.assign(Class = df1)
+        data_dfx = data_dfx.assign(Class = df_class)
         accu = knn(data_dfx, 3)
         print("knn-3:", accu)
         f.write("\n knn-3 :" + str(accu) + "\n")
@@ -73,18 +70,18 @@ def run_iid(num_ftr, n_client, n_clust_fcmi, n_clust_ffmi, f, dataset):
         ROC_AUC_score = learning(data_dfx, dataset)
         f.write("\n roc_auc_score :" + str(ROC_AUC_score) + "\n")
         roc.append(ROC_AUC_score)      
-        dataframes_to_xgb.append(data_dfx)
-    with open('dataframes.pkl', 'wb') as f1:
-        pickle.dump(dataframes_to_xgb, f1)
-    print('Starting XGBoost process...')
-    result = subprocess.run(command, stdout=subprocess.PIPE)
-    xgb_out = result.stdout.decode('utf-8')
-    print(xgb_out)
-    print('-------------------------------------')
-    print('XGBoost Accuracy: ', xgb_out[-5:])
+        # dataframes_to_xgb.append(data_dfx)
+    # with open('dataframes.pkl', 'wb') as f1:
+    #     pickle.dump(dataframes_to_xgb, f1)
+    # print('Starting XGBoost process...')
+    # result = subprocess.run(command, stdout=subprocess.PIPE)
+    # xgb_out = result.stdout.decode('utf-8')
+    # print(xgb_out)
+    # print('-------------------------------------')
+    # print('XGBoost Accuracy: ', xgb_out[-5:])
     roc_avg = sum(roc)/len(roc)
     f.write("\n roc avg: " + str(roc_avg) + "\n")
-    f.write("\n XGBoost accuracy: " + xgb_out[-5:])
+    # f.write("\n XGBoost accuracy: " + xgb_out[-5:])
     return roc_avg
 
 def main(dataset, num_ftr):
@@ -98,7 +95,7 @@ def main(dataset, num_ftr):
     dataset = dataset
     dataset_type = 'iid'
     cli_num = '5'
-    out_file = 'regvrv_vertical_single_obj_output_'+dataset+'_'+FCMI_clust_num+'_'+FFMI_clust_num+'_iid_'+cli_num+'num_ftr'+str(num_ftr)+'.txt'
+    out_file = 'vertical_multi_obj_output_'+dataset+'_'+FCMI_clust_num+'_'+FFMI_clust_num+'_iid_'+cli_num+'num_ftr'+str(num_ftr)+'.txt'
     
     f = open(out_file, "w")
     f.write("\n---------command line arguments-----------\n ")
@@ -123,7 +120,7 @@ def main(dataset, num_ftr):
     roc_avg = run_iid(num_ftr, n_client, n_clust_fcmi, n_clust_ffmi, f, dataset)
     
     roc_avg = float(roc_avg)
-    if roc_avg > max_roc+0.0001:
+    if roc_avg > max_roc+0.001:
         print('roc_avg > max_roc? ', roc_avg > max_roc+0.0001)
         print('roc_avg: ', roc_avg)
         print('max_roc: ', max_roc)
@@ -132,9 +129,14 @@ def main(dataset, num_ftr):
     else:
         f.close()
         os.remove(out_file)
-
-if __name__ == "__main__":
+    return roc_avg
     
+# USE NAME == MAIN ONLY WHEN YOU NEED TO TAKE USER INPUT
+roc_avg = 0
+while(max_roc == roc_cp):
     for num_ftr in range(lb, ub):
-        print('DATASET NAME: '+dataset)
-        main(dataset, num_ftr)
+        try:
+            print('DATASET NAME: '+dataset)
+            roc_avg = main(dataset, num_ftr)
+        except:
+            pass
