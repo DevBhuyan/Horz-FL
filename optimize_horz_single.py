@@ -5,6 +5,7 @@ from learning_randomforest import learning
 from preprocessing import preprocessing_data
 from learning_knn import knn
 from global_feature_select import global_feature_select_single
+from ff import ff
 
 max_roc = 0.0
 lftr = []
@@ -29,6 +30,7 @@ def run_iid(dataset, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_fea
     f.write("\n number of global feature subset :" + str(len(feature_list)))
     f.write("\n")
     roc = []
+    dataframes_to_send = []
     for cli in range(0, n_client):
         data_dfx = df_list[cli]
         print("cli = ", cli)
@@ -46,9 +48,13 @@ def run_iid(dataset, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_fea
         ROC_AUC_score = learning(data_dfx, dataset)
         f.write("\n roc_auc_score :" + str(ROC_AUC_score) + "\n")
         roc.append(ROC_AUC_score)
+        dataframes_to_send.append(data_dfx)
+    ff_acc = ff(dataframes_to_send)
     roc_avg = sum(roc)/len(roc)
     f.write("\n roc avg: " + str(roc_avg) + "\n")
-    return roc_avg
+    f.write("\n federated forest accuracy: " + str(ff_acc) + "\n")
+    print('ff_acc: ', ff_acc)
+    return roc_avg, ff_acc
 
 def main(dataset, num_ftr):
     
@@ -61,7 +67,7 @@ def main(dataset, num_ftr):
     dataset = dataset
     dataset_type = 'iid'
     cli_num = '5'
-    out_file = 'test2_single_obj_output_'+dataset+'_'+FCMI_clust_num+'_'+FFMI_clust_num+'_iid_'+cli_num+'num_ftr'+str(num_ftr)+'.txt'
+    out_file = 'donotconsider_single_obj_output_'+dataset+'_'+FCMI_clust_num+'_'+FFMI_clust_num+'_iid_'+cli_num+'num_ftr'+str(num_ftr)+'.txt'
     
     curr_dir = os.getcwd()
     print(curr_dir)
@@ -216,7 +222,7 @@ def main(dataset, num_ftr):
             run_noniid()
         elif dataset_type == 'iid':          
             # data_part_iid(data_df, n_client, curr_dir)
-            roc_avg = run_iid(dataset, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature, num_ftr)
+            roc_avg, ff_acc = run_iid(dataset, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature, num_ftr)
     
     elif dataset == 'vowel':
         data_df = pd.read_csv(curr_dir + "/datasets/csv_result-dataset_58_vowel.csv")
@@ -291,6 +297,7 @@ def main(dataset, num_ftr):
             roc_avg = run_iid(dataset, f, n_client, df_list, n_clust_fcmi, n_clust_ffmi, local_feature, num_ftr)
       
     roc_avg = float(roc_avg)
+    ff_acc = float(ff_acc)
     if roc_avg > max_roc:
         print('roc_avg > max_roc? ', roc_avg > max_roc)
         print('roc_avg: ', roc_avg)
@@ -306,7 +313,7 @@ def main(dataset, num_ftr):
 if __name__ == "__main__":
     dataset_list = ['ac', 'nsl', 'ionosphere', 'musk', 
                     'wdbc', 'vowel', 'wine', 'isolet', 'hillvalley']
-    i = 'relathe'     
-    for num_ftr in range(4, 4000):
+    i = 'wdbc'     
+    for num_ftr in range(30, 31):
         print('DATASET NAME: '+i)
         main(i, num_ftr)
