@@ -10,7 +10,7 @@ def feature_modeling(feature_list):
     # print(flat_list)
     return flat_list
 
-def global_feature_select(dataset, feature_list, num_ftr):
+def global_feature_select(feature_list, num_ftr = 0):
     flat_list = feature_modeling(feature_list)
     df = pd.DataFrame(flat_list, columns=['features', 'FCMI', 'aFFMI'])
     df = df.groupby('features').mean().reset_index()
@@ -22,14 +22,18 @@ def global_feature_select(dataset, feature_list, num_ftr):
     for i in range(len(df)):
         plt.text(df['FCMI'][i], df['aFFMI'][i], df['features'][i])
     plt.show()
-    ftrs_in_fronts = nsga_2(dataset, df)
+    ftrs_in_fronts = nsga_2(df)
     lst = []
     for front in ftrs_in_fronts:
         for i in front:
             lst.append(i)
-    return lst[:num_ftr]
+    num_avbl_ftrs = len(lst)
+    if num_ftr:
+        return lst[:num_ftr]
+    else:
+        return lst, num_avbl_ftrs
 
-def global_feature_select_single(feature_list, num_ftr):
+def global_feature_select_single(feature_list, num_ftr = 0):
     # Prioritises features with greater FCMI Score
     flat_list = feature_modeling(feature_list)
     df = pd.DataFrame(flat_list, columns=['features', 'FCMI', 'aFFMI'])
@@ -39,6 +43,7 @@ def global_feature_select_single(feature_list, num_ftr):
     df.sort_values(by=['FCMI'], inplace=True, ascending=False)
     # print(df)
     list1 = df['features'].values.tolist()
-    list1 = list1[:num_ftr]
-
-    return list1
+    num_avbl_ftrs = len(list1)
+    if num_ftr:
+        list1 = list1[:num_ftr]
+    return list1, num_avbl_ftrs
