@@ -10,6 +10,11 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 import numpy as np
 # from numpy import exp, log1p
+import tensorflow as tf
+import gc
+gc.enable()
+
+tf.random.set_seed(42)
 
 def one_hot_encode(values, num_classes):
     values = values.values.astype(int)
@@ -52,7 +57,7 @@ def horz_split(df_list):
         y_test_list.append(y_test)
     return x_train_list, y_train_list, x_test_list, y_test_list
 
-def trainModel(x, y):
+def trainModel(x, y, model = None):
     
     callbacks = [ReduceLROnPlateau(monitor = "val_accuracy",
                                  factor = 0.5,
@@ -79,17 +84,18 @@ def trainModel(x, y):
     except:
         num_classes = 1
     
-    model = Sequential([
-        Dense(128, activation='relu', input_shape=(input_dim,)),
-        Dense(64, activation='relu'),
-        Dropout(0.5),
-        Dense(32, activation='relu'),
-        Dense(units=num_classes, activation='sigmoid' if num_classes==1 else 'softmax')
-    ])
+    if model == None:
+        model = Sequential([
+            Dense(128, activation='relu', input_shape=(input_dim,)),
+            Dense(64, activation='relu'),
+            Dropout(0.5),
+            Dense(32, activation='relu'),
+            Dense(units=num_classes, activation='sigmoid' if num_classes==1 else 'softmax')
+        ])
+    
+        model.compile(optimizer=Adam(learning_rate = 0.001), loss='binary_crossentropy' if num_classes==1 else 'categorical_crossentropy', metrics=['accuracy', 'precision', 'recall', 'f1_score'])
 
-    model.compile(optimizer=Adam(learning_rate = 0.001), loss='binary_crossentropy' if num_classes==1 else 'categorical_crossentropy', metrics=['accuracy'])
-
-    model.fit(x, y, callbacks=callbacks, steps_per_epoch=32, epochs=10, validation_data=(xval, yval))
+    model.fit(x, y, callbacks=callbacks, steps_per_epoch=32, epochs=10, validation_data=(xval, yval), verbose=0)
 
     return model
 
@@ -104,7 +110,6 @@ def fedMLP(models):
     agg_model.set_weights(agg_weights)
     return agg_model
 
-
 def acc(model, x_test, y_test):
-    loss, acc = model.evaluate(x_test, y_test)
-    return acc
+    loss, acc, p, r, f = model.evaluate(x_test, y_test)
+    return acc, p, r, f

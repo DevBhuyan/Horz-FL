@@ -6,7 +6,7 @@ from sklearn.metrics import silhouette_samples, silhouette_score
 import pandas as pd
 
 
-def Cluster_kmeans(MI, MI_df, k, f, flag1):
+def Cluster_kmeans(MI, MI_df, k, flag1):
     # MI_Fcmi1 = np.array(MI_Fcmi)
 
     MI_Ffmi1 = np.array(MI)
@@ -37,25 +37,18 @@ def Cluster_kmeans(MI, MI_df, k, f, flag1):
     # print("inv_ccl :", inv_ccl)
     if flag1 == 0:
         val = min(inv_ccl, key=inv_ccl.get)
-        print("FFMI")
+        # print("FFMI")
     else:
         val = max(inv_ccl, key=inv_ccl.get)
-        print("FCMI")
+        # print("FCMI")
     # df_ccl = pd.DataFrame.from_dict(dict_ccl)
     silhouette_avg = silhouette_score(MI_Ffmi1, clusterer.labels_)
-    print("For n_clusters =", k,
-          "The average silhouette_score is :", silhouette_avg)
+    # print("For n_clusters =", k,
+          # "The average silhouette_score is :", silhouette_avg)
 
     # Compute the silhouette scores for each sample
     sample_silhouette_values = silhouette_samples(MI_Ffmi1, clusterer.labels_)
     ssv = sample_silhouette_values.tolist()
     # print("sample_silhouette_value :", ssv)
-    f.write("\n ----Cluster Analysis----\n")
-    f.write("cluster number :" + str(k) + "\n")
-    f.write("silhouette_avg :" + str(silhouette_avg) + "\n")
-    f.write("cluster_labels : \n")
-    f.write(str(cluster_label_list))
-    f.write("cluster_centers : \n")
-    f.write(str(cluster_center_list))
-
+    
     return cluster_label_list, cluster_center_list, cluster_map, val

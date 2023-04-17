@@ -7,9 +7,10 @@ from math import ceil
 from preprocessing import preprocessing_data
 import os
 
-def divide(data_df, dataset, n_client, f):
+def divide(data_df, dataset, n_client):
     
     df_list = []
+    data_df = data_df.sample(frac = 1)
     data_df = preprocessing_data(data_df, dataset)
     data_df = data_df.sample(frac = 1)
     data_df = data_df.astype(float)
@@ -29,68 +30,79 @@ def divide(data_df, dataset, n_client, f):
         df = data_df.iloc[lb:ub, :]
         df_list.append(df)
         print('number of samples at cli '+str(i)+' is '+str(ub-lb))
-        f.write('\n number of samples at cli '+str(i)+' is '+str(ub-lb)+'\n')
         prev = nxt
         
     return df_list
 
-def horz_data_divn(dataset, n_client, f):
+def horz_data_divn(dataset, n_client):
     curr_dir = os.getcwd()
     
     if dataset == 'nsl':
         data_df = pd.read_csv(curr_dir + "/datasets/NSL-KDD/KDDTrain+.csv")
-        df_list = divide(data_df, dataset, n_client, f)
+        df_list = divide(data_df, dataset, n_client)
         
     elif dataset == 'ac':
         data_df = pd.read_csv(curr_dir + "/datasets/annonymized-credit-card/creditcard.csv")
-        df_list = divide(data_df, dataset, n_client, f)
+        df_list = divide(data_df, dataset, n_client)
         
     elif dataset == 'arcene':
         data_df = pd.read_csv(curr_dir + "/datasets/ARCENE.csv")
-        df_list = divide(data_df, dataset, n_client, f)
+        df_list = divide(data_df, dataset, n_client)
             
     elif dataset == 'ionosphere':
         data_df = pd.read_csv(curr_dir + "/datasets/ionosphere.csv")
-        df_list = divide(data_df, dataset, n_client, f)
+        df_list = divide(data_df, dataset, n_client)
             
     elif dataset == 'relathe':
         data_df = pd.read_csv(curr_dir + "/datasets/RELATHE.csv")
-        df_list = divide(data_df, dataset, n_client, f)
+        df_list = divide(data_df, dataset, n_client)
     
     elif dataset == 'musk':
         data_df = pd.read_csv(curr_dir + "/datasets/musk_csv.csv")
-        df_list = divide(data_df, dataset, n_client, f)
+        df_list = divide(data_df, dataset, n_client)
             
     elif dataset == 'TOX-171':
         data_df = pd.read_csv(curr_dir + "/datasets/TOX-171.csv")
-        df_list = divide(data_df, dataset, n_client, f)
+        df_list = divide(data_df, dataset, n_client)
             
     elif dataset == 'wdbc':
         data_df = pd.read_csv(curr_dir + "/datasets/WDBC/data.csv")
-        df_list = divide(data_df, dataset, n_client, f)
+        df_list = divide(data_df, dataset, n_client)
     
     elif dataset == 'vowel':
         data_df = pd.read_csv(curr_dir + "/datasets/csv_result-dataset_58_vowel.csv")
-        df_list = divide(data_df, dataset, n_client, f)
+        df_list = divide(data_df, dataset, n_client)
         
     elif dataset == 'wine':
         data_df = pd.read_csv(curr_dir + "/datasets/wine.csv")
-        df_list = divide(data_df, dataset, n_client, f)
+        df_list = divide(data_df, dataset, n_client)
      
     elif dataset == 'isolet':
         data_df = pd.read_csv(curr_dir + "/datasets/isolet_csv.csv")
-        df_list = divide(data_df, dataset, n_client, f)
+        df_list = divide(data_df, dataset, n_client)
     
     elif dataset == 'hillvalley':
         data_df = pd.read_csv(curr_dir + "/datasets/hill-valley_csv.csv")
-        df_list = divide(data_df, dataset, n_client, f)
+        df_list = divide(data_df, dataset, n_client)
         
     elif dataset == 'vehicle':
         data_df = pd.read_csv(curr_dir + "/datasets/vehicle.csv")
-        df_list = divide(data_df, dataset, n_client, f)
+        df_list = divide(data_df, dataset, n_client)
         
     elif dataset == 'segmentation':
         data_df = pd.read_csv(curr_dir + "/datasets/segmentation.csv")
-        df_list = divide(data_df, dataset, n_client, f)
+        df_list = divide(data_df, dataset, n_client)
+        
+    elif dataset == 'iot':
+        data_df = pd.read_csv(curr_dir + "/datasets/iot.csv")
+        df_list = divide(data_df, dataset, n_client)
+        
+    elif dataset == 'diabetes':
+        data_df = pd.read_csv(curr_dir + "/datasets/diabetes.csv")
+        df_list = divide(data_df, dataset, n_client)
+        
+    elif dataset == 'automobile':
+        data_df = pd.read_csv(curr_dir + "/datasets/Automobile_data.csv")
+        df_list = divide(data_df, dataset, n_client)
         
     return df_list
