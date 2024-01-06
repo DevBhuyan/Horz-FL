@@ -24,10 +24,24 @@ def fast_non_dominated_sort(df_copy):
             fronts.append(front)   
         else:
             break
+    del(df_copy)
     return fronts
 
 # Main program starts here
-def nsga_2(dataset, df):
+def nsga_2(df : pd.DataFrame):
+    '''
+    Version of NSGA 2 algorithm optimized to our use case
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+
+    Returns
+    -------
+    ftrs_in_fronts : list
+        pareto fronts containing features.
+
+    '''
     
     # Initialization
     df_copy = df.copy(deep = True)
@@ -44,6 +58,9 @@ def nsga_2(dataset, df):
             ftrs_in_front.append(df['features'])
         ftrs_in_fronts.append(ftrs_in_front)
         
-    print('Pareto fronts: ', ftrs_in_fronts)
+    # print('Pareto fronts: ', ftrs_in_fronts)
+    
+    del(df)
+    del(non_dominated_sorted_solution)
         
     return ftrs_in_fronts

@@ -4,9 +4,34 @@ from matplotlib.pyplot import show, suptitle, subplots
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_samples, silhouette_score
 import pandas as pd
+import gc
+gc.enable()
 
 
-def Cluster_kmeans(MI, MI_df, k, flag1):
+def Cluster_kmeans(MI : list, 
+                   MI_df : pd.DataFrame, 
+                   k : int, 
+                   flag1 : int):
+    '''
+    Wrapper function for K-Means clustering
+
+    Parameters
+    ----------
+    MI : list
+        list of list containing Mutual Information of feature vs. feature.
+    MI_df : pd.DataFrame
+    k : int
+        number of clusters.
+    flag1 : int
+
+    Returns
+    -------
+    cluster_label_list : list
+    cluster_center_list : list
+    cluster_map : list
+    val : int
+
+    '''
     # MI_Fcmi1 = np.array(MI_Fcmi)
 
     MI_Ffmi1 = np.array(MI)

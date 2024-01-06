@@ -75,7 +75,43 @@ ff_list = []
 mlp_list = []
 comm_iters = 100
 
-def run_iid(n_client, n_clust_fcmi, n_clust_ffmi, dataset, num_ftr, dset, comm_iter):
+def run_iid(n_client : int, 
+            n_clust_fcmi : int, 
+            n_clust_ffmi : int, 
+            dataset : int, 
+            num_ftr : int, 
+            dset : pd.Series, 
+            comm_iter : int):
+    '''
+    Driver function to compute optimal communication iterations given maximum accuracy 
+
+    Parameters
+    ----------
+    n_client : int
+        number of clients.
+    n_clust_fcmi : int
+        number of fcmi clusters.
+    n_clust_ffmi : int
+        number of ffmi clusters.
+    dataset : str
+        code name of dataset.
+    num_ftr : int
+        number of features.
+    dset : pd.Series
+        single row of `datasets`.
+    comm_iter : int
+        number of communication iterations during Fed-Avg
+
+    Returns
+    -------
+    MLP_acc : float
+        accuracy.
+    MLP_prec : float
+        precision.
+    MLP_rec : float
+        recall.
+
+    '''
 
     global lftr
     global df_list

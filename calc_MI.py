@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+import gc
+gc.enable()
 
 
 def mutual_information(X, Y, bins):
@@ -22,7 +24,20 @@ def shan_entropy(c):
     return H
 
 
-def calc_MI(df):
+def calc_MI(df : pd.DataFrame):
+    '''
+    Wrapper function for calculation of Mutual Information
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+
+    Returns
+    -------
+    df1 : pd.DataFrame
+        dataframe of mutual information.
+
+    '''
     cols = df.columns
     bins = 10
     A = df.to_numpy()
