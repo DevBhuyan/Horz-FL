@@ -42,7 +42,7 @@ datasets = pd.DataFrame(dataset_list, columns=["dataset", "lb", "ub", "step"])
 lftr = []
 df_list = []
 obj = "No-FS"
-classifier = "mlp"
+classifier = "ff"
 ff_list = []
 mlp_list = []
 runs = 10  # This variable will decide the number of times you wish to run the pipeline. The mean and standard deviation of the code will be automatically computed and the end outputs will contain the final computed values.
