@@ -2,7 +2,7 @@
 
 # Quickstart:
 ```bash
-git clone https://github.com/DevBhuyan/Horz-FL.git
+clone git repo
 cd ~/Horz-FL
 pip install -r requirements.txt
 python ten_rounds.py
