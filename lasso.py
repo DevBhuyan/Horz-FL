@@ -3,7 +3,7 @@
 """
 Created on Mon Apr 17 17:48:55 2023
 
-@author: dev
+@author: 
 """
 
 from sklearn.linear_model import Lasso
