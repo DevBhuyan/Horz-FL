@@ -1,21 +1,35 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Jul  6 00:24:45 2023
+"""Created on Thu Jul 6 00:24:45 2023.
 
 @author: dev
 """
 
 import numpy as np
-import pandas as pd
 from FAR_based_outlier_detection import symmetric_uncertainty
-from sklearn.metrics import silhouette_samples, pairwise_distances
 import copy
 
 cor = symmetric_uncertainty
+"""This code is based on the paper titled "Federated Feature Selection for
+Horizontal Federated Learning in IoT Networks" by Zhang et.
+
+Al. This is derived from the algorithmic descriptions given in the text. The function definitions follow henceforth. This implementation is invoked in the `sota.py` file
+"""
+
 
 def Gavg(Q, df):
-    min_avg = float('inf')
+    """Calculate the group average linkage measure and find the minimum.
+
+    Parameters:
+    Q (list): List of triples containing delta (symmetric uncertainty) and feature indices.
+    df (pd.DataFrame): Input DataFrame.
+
+    Returns:
+    min_avg (float): Minimum average linkage measure.
+    min_i (str): Index of the first feature in the minimum average linkage.
+    min_j (str): Index of the second feature in the minimum average linkage.
+    """
+    min_avg = float("inf")
     min_i, min_j = None, None
 
     for q in Q:
@@ -29,7 +43,18 @@ def Gavg(Q, df):
 
     return min_avg, min_i, min_j
 
+
 def compute_group_average(cluster_i, cluster_j):
+    """Calculate the average linkage measure between two clusters.
+
+    Parameters:
+    cluster_i (list): Data of the first cluster.
+    cluster_j (list): Data of the second cluster.
+
+    Returns:
+    average (float): Average linkage measure.
+    """
+    # Calculate the average linkage measure between cluster_i and cluster_j
     total_distance = 0
     count = 0
 
@@ -43,14 +68,32 @@ def compute_group_average(cluster_i, cluster_j):
 
     return average
 
+
 def calculate_distance(element_i, element_j):
+    """Calculate the Euclidean distance between two elements.
+
+    Parameters:
+    element_i (numpy.ndarray): First element.
+    element_j (numpy.ndarray): Second element.
+
+    Returns:
+    distance (float): Euclidean distance.
+    """
     distance = np.linalg.norm(element_i - element_j)
     return distance
 
-def replace_columns_with_data(clusters, df):
-    clusters_copy = copy.deepcopy(clusters)
 
-    clusters_copy = [cluster for cluster in clusters_copy if isinstance(cluster, list)]
+def replace_columns_with_data(clusters, df):
+    """Replace feature indices in clusters with actual data from the DataFrame.
+
+    Parameters:
+    clusters (list): List of clusters containing feature indices.
+    df (pd.DataFrame): Input DataFrame.
+
+    Returns:
+    clusters_copy (list): List of clusters with actual data.
+    """
+    clusters_copy = copy.deepcopy(clusters)
 
     for i in range(len(clusters_copy)):
         cluster = clusters_copy[i]
@@ -62,13 +105,35 @@ def replace_columns_with_data(clusters, df):
 
 
 def SCK(clusters, df):
+    """Compute the Silhouette Coefficient for a set of clusters.
+
+    Parameters:
+    clusters (list): List of clusters containing data.
+    df (pd.DataFrame): Input DataFrame.
+
+    Returns:
+    avg_silhouette (float): Average Silhouette Coefficient.
+    """
     DL = np.array(replace_columns_with_data(clusters, df))
     silhouette_scores = []
 
     for cluster_idx, cluster in enumerate(DL):
         for sample in cluster:
-            a = np.mean([np.linalg.norm(sample - other_sample) for other_sample in cluster])
-            b = min([np.mean([np.linalg.norm(sample - other_sample) for other_sample in other_cluster]) for other_cluster in DL if not np.array_equal(other_cluster, cluster)])
+            a = np.mean(
+                [np.linalg.norm(sample - other_sample) for other_sample in cluster]
+            )
+            b = min(
+                [
+                    np.mean(
+                        [
+                            np.linalg.norm(sample - other_sample)
+                            for other_sample in other_cluster
+                        ]
+                    )
+                    for other_cluster in DL
+                    if not np.array_equal(other_cluster, cluster)
+                ]
+            )
             silhouette_scores.append((b - a) / max(a, b))
 
     avg_silhouette = np.mean(silhouette_scores)
@@ -77,22 +142,20 @@ def SCK(clusters, df):
 
 
 def frhc(df):
-    '''
-    
+    """Federated Recursive Hierarchical Clustering (FRHC) for feature
+    selection.
 
-    Parameters
-    ----------
-    df : pd.DataFrame
+    Parameters:
+    df (pd.DataFrame): Input DataFrame.
 
-    Returns
-    -------
-    clusters : 
-        FRHC returned clusters.
-
-    '''
+    Returns:
+    clusters (list): Final clusters obtained from FRHC.
+    sc (float): Silhouette Coefficient for the final set of clusters.
+    """
     e = len(df.columns)
     Q = []
     clusters = df.columns.tolist()
+    sc = {}
 
     for j in range(1, e):
         for i in range(j):
@@ -121,13 +184,10 @@ def frhc(df):
                 clusters.remove(min_j)
                 clusters.append([min_i, min_j])
                 break
-        Q = [q for q in Q if not (q[1] == min_j or q[2] == min_j or q[1] == min_i or q[2] == min_i)]
-    # for k in range(2, e):
-        # sc[k] = SCK(clusters, k, df)
-    # scl = sorted(sc, key = lambda x:sc[x], reverse = True)
-    # print(clusters)
-    # sc = SCK(clusters, df)
-    for i in range(len(clusters)):
-        if isinstance(clusters[i], str):
-            clusters[i] = [clusters[i]]
-    return clusters
+        Q = [
+            q
+            for q in Q
+            if not (q[1] == min_j or q[2] == min_j or q[1] == min_i or q[2] == min_i)
+        ]
+    sc = SCK(clusters, df)
+    return clusters, sc
