@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """Created on Sun Dec 17 01:56:04 2023.
 
-@author: dev
+@author:
 """
 
 from local_feature_select import local_fs, full_spec_fs
