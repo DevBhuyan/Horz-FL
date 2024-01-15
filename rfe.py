@@ -3,7 +3,7 @@
 """
 Created on Sat Jul 29 01:25:06 2023
 
-@author: dev
+@author: 
 """
 
 from horz_data_divn import horz_data_divn
