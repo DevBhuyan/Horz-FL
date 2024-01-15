@@ -3,7 +3,7 @@
 """
 Created on Mon Jul 17 22:22:53 2023
 
-@author: dev
+@author: 
 """
 
 from FAR_based_outlier_detection import FAR_based_outlier_detection
