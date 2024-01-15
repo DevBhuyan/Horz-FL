@@ -8,6 +8,8 @@ pip install -r requirements.txt
 python ten_rounds.py
 ```
 
+Recommended Python Version: `3.9`
+
 # Driver Files:
 1. **ten_rounds.py**
 	This is the main script for Horizontal FL, Inside this you will get options to run different FL methods across different datasets and compile results.
