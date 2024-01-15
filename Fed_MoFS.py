@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """Created on Thu Jul 27 02:37:27 2023.
 
-@author: dev
+@author: 
 """
 
 from horz_data_divn import horz_data_divn
