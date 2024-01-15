@@ -53,3 +53,5 @@ python ten_rounds.py
 - SMOTE.py
 - sota.py
 - train_model.py
+
+The datasets directory can be downloaded from [here](https://drive.google.com/file/d/1OgmWSRQkSaRYkNr9uju_qejz-lrPRgkf/view?usp=sharing) ~ 163.7 MB
