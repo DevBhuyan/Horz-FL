@@ -1,5 +1,0 @@
-First Download all data and then run this :
-
-$python main.py --fs_method=fed_mofs --dataset_name=WDBC
-
-
