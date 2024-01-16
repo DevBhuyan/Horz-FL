@@ -1,0 +1,126 @@
+1. Wine - https://archive.ics.uci.edu/dataset/109/wine
+Citation - Aeberhard,Stefan and Forina,M.. (1991). Wine. UCI Machine Learning Repository. https://doi.org/10.24432/C5PC7J.
+BibTex - @misc{misc_wine_109,
+  author       = {Aeberhard,Stefan and Forina,M.},
+  title        = {{Wine}},
+  year         = {1991},
+  howpublished = {UCI Machine Learning Repository},
+  note         = {{DOI}: https://doi.org/10.24432/C5PC7J}
+}
+
+2. NSL-KDD99 - https://www.kaggle.com/datasets/hassan06/nslkdd
+BibTex - @misc{nsl_kdd99_dataset,
+  title = {{NSL-KDD} - {Data} set},
+  author = {{University of New Brunswick, Canada}},
+  year = {2007},
+  howpublished = {NSL-KDD Data set},
+  note = {The NSL-KDD data set is a refined version of the KDD'99 data set, created to address some of the limitations of the original KDD'99 data set. It is widely used for evaluating intrusion detection systems (IDS) and machine learning techniques for network security.},
+  url = {http://www.unb.ca/cic/datasets/nsl.html},
+}
+
+3. ACC - https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud
+BibTex - @misc{credit_card_fraud_dataset,
+  title = {Credit Card Fraud Dataset},
+  author = {Andrea Dal Pozzolo, Olivier Caelen, Reid A. Johnson and Gianluca Bontempi},
+  year = {2015},
+  howpublished = {Kaggle},
+  url = {https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud},
+}
+
+4. Vowel - https://www.openml.org/search?type=data&sort=runs&id=58&status=active
+BibTex - @misc{vowel_recognition_data,
+  title = {Deterding Vowel Recognition Data},
+  author = {Peter Turney},
+  howpublished = {OpenML},
+  year = {2014},
+  url = {https://www.openml.org/search?type=data&sort=runs&id=58&status=active},
+}
+
+
+5. Vehicle - https://www.kaggle.com/datasets/nehalbirla/vehicle-dataset-from-cardekho
+BibTex - @misc{vehicle_dataset,
+  title = {Vehicle Dataset},
+  author = {Various},
+  howpublished = {Kaggle},
+  year = {2020},
+  note = {Provenance: Scraped data from website. Collection Methodology: Scraped data from websites. License: Database: Open Database, Contents: Database Contents.},
+  url = {https://www.kaggle.com/datasets/nehalbirla/vehicle-dataset-from-cardekho},
+}
+
+6. Segmentation - https://www.kaggle.com/datasets/kaushiksuresh147/customer-segmentation
+BibTex - @misc{customer_segmentation_dataset,
+  title = {Customer Segmentation Classification},
+  author = {Kaushik Suresh},
+  howpublished = {Kaggle},
+  url = {https://www.kaggle.com/datasets/kaushiksuresh147/customer-segmentation},
+}
+
+7. WDBC(Wisconsin Diagnostics Breast Cancer) - http://archive.ics.uci.edu/dataset/17/breast+cancer+wisconsin+diagnostic
+Citation - Wolberg,William, Mangasarian,Olvi, Street,Nick, and Street,W.. (1995). Breast Cancer Wisconsin (Diagnostic). UCI Machine Learning Repository. https://doi.org/10.24432/C5DW2B.
+BibTex - @misc{misc_breast_cancer_wisconsin_(diagnostic)_17,
+  author       = {Wolberg,William, Mangasarian,Olvi, Street,Nick, and Street,W.},
+  title        = {{Breast Cancer Wisconsin (Diagnostic)}},
+  year         = {1995},
+  howpublished = {UCI Machine Learning Repository},
+  note         = {{DOI}: https://doi.org/10.24432/C5DW2B}
+}
+
+8. Ionosphere - https://archive.ics.uci.edu/dataset/52/ionosphere
+Citation - Sigillito,V., Wing,S., Hutton,L., and Baker,K.. (1989). Ionosphere. UCI Machine Learning Repository. https://doi.org/10.24432/C5W01B.
+BibTex - @misc{misc_ionosphere_52,
+  author       = {Sigillito,V., Wing,S., Hutton,L., and Baker,K.},
+  title        = {{Ionosphere}},
+  year         = {1989},
+  howpublished = {UCI Machine Learning Repository},
+  note         = {{DOI}: https://doi.org/10.24432/C5W01B}
+}
+
+9. Hill Valley - http://archive.ics.uci.edu/dataset/166/hill+valley
+Citation - Graham,Lee and Oppacher,Franz. (2008). Hill-Valley. UCI Machine Learning Repository. https://doi.org/10.24432/C5JC8P.
+BibTex - @misc{misc_hill-valley_166,
+  author       = {Graham,Lee and Oppacher,Franz},
+  title        = {{Hill-Valley}},
+  year         = {2008},
+  howpublished = {UCI Machine Learning Repository},
+  note         = {{DOI}: https://doi.org/10.24432/C5JC8P}
+}
+
+10. Isolet - https://archive.ics.uci.edu/dataset/54/isolet
+Citation - Cole,Ron and Fanty,Mark. (1994). ISOLET. UCI Machine Learning Repository. https://doi.org/10.24432/C51G69.
+BibTex - @misc{misc_isolet_54,
+  author       = {Cole,Ron and Fanty,Mark},
+  title        = {{ISOLET}},
+  year         = {1994},
+  howpublished = {UCI Machine Learning Repository},
+  note         = {{DOI}: https://doi.org/10.24432/C51G69}
+}
+
+11. Diabetes - https://www.kaggle.com/datasets/mathchi/diabetes-data-set
+BibTex - @misc{diabetes_dataset,
+  title = {Diabetes Dataset},
+  author = {National Institute of Diabetes and Digestive and Kidney Diseases},
+  howpublished = {Kaggle},
+  year = {1990},
+  note = {Original owners: National Institute of Diabetes and Digestive and Kidney Diseases. Donor of database: Vincent Sigillito (vgs@aplcen.apl.jhu.edu), Research Center, RMI Group Leader, Applied Physics Laboratory, The Johns Hopkins University, Johns Hopkins Road, Laurel, MD 20707, (301) 953-6231. Date received: 9 May 1990.},
+  url = {https://www.kaggle.com/datasets/mathchi/diabetes-data-set},
+}
+
+12. IoT - https://www.kaggle.com/datasets/taranvee/smart-home-dataset-with-weather-information
+BibTex - @misc{smart_home_dataset,
+  title = {Smart Home Dataset with Weather Information},
+  author = {Taranveer Singh Anttal},
+  year = {2019},
+  howpublished = {Kaggle},
+  url = {https://www.kaggle.com/datasets/taranvee/smart-home-dataset-with-weather-information},
+}
+
+13. Automobile - https://www.kaggle.com/datasets/toramky/automobile-dataset
+BibTex - @misc{automobile_dataset,
+  title = {Automobile Dataset},
+  author = {Various},
+  howpublished = {Kaggle},
+  year = {1985},
+  note = {Sources: 1985 Model Import Car and Truck Specifications, 1985 Ward's Automotive Yearbook. Personal Auto Manuals, Insurance Services Office, 160 Water Street, New York, NY 10038. Insurance Collision Report, Insurance Institute for Highway Safety, Watergate 600, Washington, DC 20037.},
+  url = {https://www.kaggle.com/datasets/toramky/automobile-dataset},
+}
+
