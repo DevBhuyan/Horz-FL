@@ -1,5 +1,7 @@
 ## README file for Horz-FL-main
 
+**For the programs to successfully run, you'll need to download the datasets (mentioned in `dataset_sources.txt`) and organize them into the `./datasets` directory. Edit the `horz_data_divn.py` file as per the datasets filenames/paths and run any of the driver codes.**
+
 # Quickstart:
 ```bash
 clone git repo
@@ -55,8 +57,6 @@ Recommended Python Version: `3.9`
 - SMOTE.py
 - sota.py
 - train_model.py
-
-The datasets directory can be downloaded from [here](https://drive.google.com/file/d/1OgmWSRQkSaRYkNr9uju_qejz-lrPRgkf/view?usp=sharing) ~ 163.7 MB
 
 Raw Outputs/logs collected during training period can be viewed in the `RAW_OUTPUTS.zip`
 Processed final outputs can be viewed from the `csv` files stored in the `CSV processed Outputs` directory.
