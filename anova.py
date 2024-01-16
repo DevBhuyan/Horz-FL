@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Created on Sat Jul 29 01:20:31 2023.
-
-@author: dev
-"""
 
 import pandas as pd
 from datetime import datetime

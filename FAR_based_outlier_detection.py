@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Created on Tue Jul 4 17:55:23 2023.
-
-@author: 
-"""
 
 import numpy as np
 import pandas as pd

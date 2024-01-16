@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Created on Thu Jul 27 01:48:56 2023.
-
-@author: 
-"""
 
 from local_feature_select import local_fs
 from datetime import datetime

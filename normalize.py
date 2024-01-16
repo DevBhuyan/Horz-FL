@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Created on Sun Apr 16 18:59:57 2023.
-
-@author: 
-"""
 
 
 def normalize(dlist):

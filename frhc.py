@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Created on Thu Jul 6 00:24:45 2023.
-
-@author: dev
-"""
 
 import numpy as np
 from FAR_based_outlier_detection import symmetric_uncertainty

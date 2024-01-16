@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Created on Tue Jun 13 22:49:20 2023.
-
-@author:
-"""
 
 from ff_helpers import horz_split, trainModel
 from sklearn.metrics import accuracy_score, precision_score, recall_score

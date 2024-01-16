@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Created on Thu Jul 27 02:37:27 2023.
-
-@author: 
-"""
 
 from horz_data_divn import horz_data_divn
 from local_feature_select import local_fs

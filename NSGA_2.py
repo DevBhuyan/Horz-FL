@@ -5,10 +5,8 @@ gc.enable()
 
 
 def fast_non_dominated_sort(df_copy):
-    """Code based on NSGA-II by Deb et.
-
-    Al.
-    Refer: https://cs.uwlax.edu/~dmathias/cs419/readings/NSGAIIElitistMultiobjectiveGA.pdf
+    """Code based on NSGA-II by Deb et.Al.
+    Refer: "A Fast and Elitist Multiobjective Genetic Algorithm: NSGA-II" by Kalyanmoy Deb
     """
     l = df_copy.shape[0]
     df_copy = df_copy.sort_values("FCMI").reset_index(drop=True)

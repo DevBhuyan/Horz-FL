@@ -46,7 +46,6 @@ class server_avg:
         self.global_model = DNN(dataset[2], 20, self.num_labels).to(device)
 
         # print(dataset[0]['user_data'][1])
-        # input("press-55")
         for i in range(num_users):
             user_id = i
             train, test = read_user_data(user_id, dataset)
@@ -146,16 +145,16 @@ class server_avg:
         directory_name = self.dataset_name
         # Check if the directory already exists
         if not os.path.exists(
-            "/proj/sourasb-220503/fed_fs_communication_round/results/" + directory_name
+            "./fed_fs_communication_round/results/" + directory_name
         ):
             # If the directory does not exist, create it
             os.makedirs(
-                "/proj/sourasb-220503/fed_fs_communication_round/results/"
+                "./fed_fs_communication_round/results/"
                 + directory_name
             )
 
         with h5py.File(
-            "/proj/sourasb-220503/fed_fs_communication_round/results/"
+            "./fed_fs_communication_round/results/"
             + directory_name
             + "/"
             + "{}.h5".format(file_name),

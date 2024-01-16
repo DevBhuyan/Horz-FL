@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Created on Sat Dec 16 22:02:49 2023.
-
-@author: dev
-"""
 
 from local_feature_select import local_fs, full_spec_fs
 from global_feature_select import global_feature_select, global_feature_select_single
