@@ -34,7 +34,8 @@ def Cluster_kmeans(MI: list, MI_df: pd.DataFrame, k: int, flag1: int):
     """
     MI_Ffmi1 = np.array(MI)
 
-    clusterer = KMeans(n_clusters=k, init="k-means++", random_state=1).fit(MI_Ffmi1)
+    clusterer = KMeans(n_clusters=k, init="k-means++",
+                       random_state=1).fit(MI_Ffmi1)
 
     cluster_map = pd.DataFrame()
     cluster_map["data_index"] = MI_df.index.values
@@ -63,8 +64,5 @@ def Cluster_kmeans(MI: list, MI_df: pd.DataFrame, k: int, flag1: int):
     silhouette_score(MI_Ffmi1, clusterer.labels_)
 
     sample_silhouette_values = silhouette_samples(MI_Ffmi1, clusterer.labels_)
-    ssv = sample_silhouette_values.tolist()
-
-    print("sample_silhouette_values:", ssv)
 
     return cluster_label_list, cluster_center_list, cluster_map, val

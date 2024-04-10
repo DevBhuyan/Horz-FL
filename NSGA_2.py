@@ -6,6 +6,7 @@ gc.enable()
 
 def fast_non_dominated_sort(df_copy):
     """Code based on NSGA-II by Deb et.Al.
+
     Refer: "A Fast and Elitist Multiobjective Genetic Algorithm: NSGA-II" by Kalyanmoy Deb
     """
     l = df_copy.shape[0]
@@ -58,8 +59,6 @@ def nsga_2(df: pd.DataFrame):
         for df in front:
             ftrs_in_front.append(df["features"])
         ftrs_in_fronts.append(ftrs_in_front)
-
-    print("Pareto fronts: ", ftrs_in_fronts)
 
     del df
     del non_dominated_sorted_solution

@@ -1,27 +1,16 @@
 from SMOTE import smote
 import numpy as np
 import pandas as pd
+import gc
+
+gc.enable()
 
 
-def preprocessing_data(data_df: pd.DataFrame, dataset_name: str):
-    """Dataset preprocessing function. This function converts all textual
-    values to int, removes primary keys, converts all values to float and class
-    values to int, normalizes the data, and returns the processed dataframe.
-
-    Parameters
-    ----------
-    data_df : pd.DataFrame
-        raw df.
-    dataset_name : str
-        code name of dataframe. See `datasets` table of main().
-
-    Returns
-    -------
-    data_df : pd.DataFrame
-        processed dataframe.
-    """
+def preprocessing_data(data_df: pd.DataFrame,
+                       dataset_name: str,
+                       oversampling: bool = True):
     if dataset_name == "nsl":
-        data_df = data_df.replace(regex={"anomaly": 1, "normal": 0})
+        data_df = data_df.replace(regex={"anomaly": 0, "normal": 1})
         try:
             data_df["class"] = data_df["class"].astype(float)
         except:
@@ -33,7 +22,8 @@ def preprocessing_data(data_df: pd.DataFrame, dataset_name: str):
         data_df.drop(["Time"], axis=1, inplace=True)
 
     if dataset_name == "musk":
-        data_df.drop(["molecule_name", "conformation_name"], axis=1, inplace=True)
+        data_df.drop(["molecule_name", "conformation_name"],
+                     axis=1, inplace=True)
 
     if dataset_name == "wdbc":
         data_df = data_df.replace(regex={"M": 0, "B": 1})
@@ -105,7 +95,7 @@ def preprocessing_data(data_df: pd.DataFrame, dataset_name: str):
                 "'23'": 23,
                 "'24'": 24,
                 "'25'": 25,
-                "'26'": 26,
+                "'26'": 0,
             }
         )
 
@@ -136,12 +126,13 @@ def preprocessing_data(data_df: pd.DataFrame, dataset_name: str):
                 "CNG": 3,
                 "Electric": 4,
                 "Hybrid": 5,
-                "LPG": 6,
+                "LPG": 0,
             }
         )
         data_df = data_df.replace(regex={"Automatic": 0, "Manual": 1})
         data_df = data_df.replace(
-            regex={"Corporate": 0, "Individual": 1, "Commercial Registration": 2}
+            regex={"Corporate": 0, "Individual": 1,
+                   "Commercial Registration": 2}
         )
         data_df = data_df.replace(regex={"RWD": 0, "FWD": 1, "AWD": 2})
         data_df.dropna(inplace=True)
@@ -161,7 +152,7 @@ def preprocessing_data(data_df: pd.DataFrame, dataset_name: str):
                 "Executive": 6,
                 "Doctor": 7,
                 "Homemaker": 8,
-                "Marketing": 9,
+                "Marketing": 0,
             }
         )
         data_df = data_df.replace(regex={"Low": 0, "Average": 1, "High": 2})
@@ -173,10 +164,10 @@ def preprocessing_data(data_df: pd.DataFrame, dataset_name: str):
                 "Cat_4": 4,
                 "Cat_5": 5,
                 "Cat_6": 6,
-                "Cat_7": 7,
+                "Cat_7": 0,
             }
         )
-        data_df = data_df.replace(regex={"A": 1, "B": 2, "C": 3, "D": 4})
+        data_df = data_df.replace(regex={"A": 1, "B": 2, "C": 3, "D": 0})
         data_df.dropna(inplace=True)
 
     if dataset_name == "iot":
@@ -204,20 +195,20 @@ def preprocessing_data(data_df: pd.DataFrame, dataset_name: str):
         )
 
     if dataset_name == "automobile":
-        data_df = data_df.replace(regex={"gas": 1, "diesel": 2})
-        data_df = data_df.replace(regex={"std": 1, "turbo": 2})
-        data_df = data_df.replace(regex={"two": 1, "four": 2})
+        data_df = data_df.replace(regex={"gas": 1, "diesel": 0})
+        data_df = data_df.replace(regex={"std": 1, "turbo": 0})
+        data_df = data_df.replace(regex={"two": 1, "four": 0})
         data_df = data_df.replace(
             regex={
                 "convertible": 1,
                 "sedan": 2,
                 "hatchback": 3,
                 "wagon": 4,
-                "hardtop": 5,
+                "hardtop": 0,
             }
         )
-        data_df = data_df.replace(regex={"rwd": 1, "fwd": 2, "4wd": 3})
-        data_df = data_df.replace(regex={"front": 1, "rear": 2})
+        data_df = data_df.replace(regex={"rwd": 1, "fwd": 2, "4wd": 0})
+        data_df = data_df.replace(regex={"front": 1, "rear": 0})
         data_df = data_df.replace(
             regex={
                 "two": 1,
@@ -226,7 +217,7 @@ def preprocessing_data(data_df: pd.DataFrame, dataset_name: str):
                 "five": 4,
                 "six": 5,
                 "eight": 6,
-                "twelve": 7,
+                "twelve": 0,
             }
         )
         data_df = data_df.replace(
@@ -266,6 +257,7 @@ def preprocessing_data(data_df: pd.DataFrame, dataset_name: str):
         data_df = data_df.rename(columns={"class": "Class"})
     except:
         pass
+
     if data_df["Class"].min() != 0:
         cl = data_df.pop("Class")
         cl -= 1
@@ -273,7 +265,7 @@ def preprocessing_data(data_df: pd.DataFrame, dataset_name: str):
 
     data_df = data_df.astype(float)
     # BUG: SMOTE may cause issues with certain data, if it does, please comment the next two lines
-    if dataset_name != "iot" and dataset_name != "automobile":
+    if dataset_name != "automobile" and oversampling:
         data_df = smote(data_df)
 
     # NORMALIZE
@@ -285,10 +277,5 @@ def preprocessing_data(data_df: pd.DataFrame, dataset_name: str):
     X = (X - means) / stds
     data_df = X
     data_df = data_df.assign(Class=y)
-
-    del X
-    del y
-    del means
-    del stds
 
     return data_df

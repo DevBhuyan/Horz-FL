@@ -1,6 +1,9 @@
 import pandas as pd
 from NSGA_2 import nsga_2
 import matplotlib.pyplot as plt
+from warnings import warn
+import os
+import pickle
 import gc
 
 gc.enable()
@@ -22,29 +25,39 @@ def feature_modeling(feature_list):
     return flat_list
 
 
-def global_feature_select(feature_list, num_ftr=0):
-    """Perform global feature selection using FCMI and aFFMI scores.
+def global_feature_select(feature_list: list,
+                          num_ftr: int,
+                          iid_ratio,
+                          dataset: int,
+                          n_client: int,
+                          verbose: bool = False):
+    # flat_list = feature_modeling(feature_list)
+    # df = pd.DataFrame(flat_list, columns=["features", "FCMI", "aFFMI"])
 
-    Parameters:
-    - feature_list (list): List of features with corresponding FCMI and aFFMI scores.
-    - num_ftr (int): Number of features to select (default is 0, meaning all features).
+    # TODO: Write code to fetch lst from storage, reuse code from horz_data_divn
+    stored_file = f"./feature_lists/multi_obj_{dataset}_{n_client}_{str(iid_ratio)}.pkl"
+    if os.path.exists(stored_file):
+        with open(stored_file, "rb") as f:
+            lst = pickle.load(f)
+            warn("Data loaded from cache. Delete ./feature_lists to run afresh")
+            if num_ftr:
+                return lst[:num_ftr], len(lst)
+            else:
+                return lst, len(lst)
 
-    Returns:
-    - selected_features (list): List of selected features.
-    - num_avbl_ftrs (int): Number of available features after selection.
-    """
-    flat_list = feature_modeling(feature_list)
-    df = pd.DataFrame(flat_list, columns=["features", "FCMI", "aFFMI"])
+    warn("`flat_list` was deprecated in version 2.0 to improve efficiency")
+    df = pd.DataFrame(feature_list, columns=["features", "FCMI", "aFFMI"])
     df = df.groupby("features").mean().reset_index()
 
-    # Displaying global feature list using a scatter plot
-    plt.scatter(df["FCMI"], df["aFFMI"])
-    plt.xlabel("FCMI")
-    plt.ylabel("aFFMI")
-    plt.title("Global Feature list")
-    for i in range(len(df)):
-        plt.text(df["FCMI"][i], df["aFFMI"][i], df["features"][i])
-    plt.show()
+    if verbose:
+        # Displaying global feature list using a scatter plot
+        plt.scatter(df["FCMI"], df["aFFMI"])
+        plt.xlabel("FCMI")
+        plt.ylabel("aFFMI")
+        plt.title("Global Feature list")
+        for i in range(len(df)):
+            plt.text(df["FCMI"][i], df["aFFMI"][i], df["features"][i])
+        plt.show()
 
     ftrs_in_fronts = nsga_2(df)
     lst = []
@@ -52,38 +65,51 @@ def global_feature_select(feature_list, num_ftr=0):
         for i in front:
             lst.append(i)
 
-    num_avbl_ftrs = len(lst)
+    # TODO: Write code to save lst to storage, create folder if DNE
+    if not os.path.exists('./feature_lists'):
+        os.makedirs('./feature_lists')
+    with open(stored_file, 'wb') as f:
+        pickle.dump(lst, f)
 
     if num_ftr:
-        return lst[:num_ftr], num_avbl_ftrs
+        return lst[:num_ftr], len(lst)
     else:
-        return lst, num_avbl_ftrs
+        return lst, len(lst)
 
 
-def global_feature_select_single(feature_list, num_ftr=0):
-    """Perform global feature selection prioritizing features with greater FCMI
-    Score.
+def global_feature_select_single(feature_list,
+                                 num_ftr,
+                                 iid_ratio,
+                                 dataset,
+                                 n_client):
+    # flat_list = feature_modeling(feature_list)
+    # df = pd.DataFrame(flat_list, columns=["features", "FCMI", "aFFMI"])
 
-    Parameters:
-    - feature_list (list): List of features with corresponding FCMI and aFFMI scores.
-    - num_ftr (int): Number of features to select (default is 0, meaning all features).
+    stored_file = f"./feature_lists/single_obj_{dataset}_{n_client}_{str(iid_ratio)}.pkl"
+    if os.path.exists(stored_file):
+        with open(stored_file, "rb") as f:
+            lst = pickle.load(f)
+            warn("Data loaded from cache. Delete ./feature_lists to run afresh")
+            if num_ftr:
+                return lst[:num_ftr], len(lst)
+            else:
+                return lst, len(lst)
 
-    Returns:
-    - selected_features (list): List of selected features.
-    - num_avbl_ftrs (int): Number of available features after selection.
-    """
-    flat_list = feature_modeling(feature_list)
-    df = pd.DataFrame(flat_list, columns=["features", "FCMI", "aFFMI"])
+    warn("`flat_list` was deprecated in version 2.0 to improve efficiency")
+    df = pd.DataFrame(feature_list, columns=["features", "FCMI", "aFFMI"])
     df = df.groupby("features").mean().reset_index()
 
     df["FCMI"] = df["FCMI"] - (df["aFFMI"] / (len(df)))
 
     df.sort_values(by=["FCMI"], inplace=True, ascending=False)
-    list1 = df["features"].values.tolist()
+    lst = df["features"].values.tolist()
 
-    num_avbl_ftrs = len(list1)
+    if not os.path.exists('./feature_lists'):
+        os.makedirs('./feature_lists')
+    with open(stored_file, 'wb') as f:
+        pickle.dump(lst, f)
 
     if num_ftr:
-        list1 = list1[:num_ftr]
-
-    return list1, num_avbl_ftrs
+        return lst[:num_ftr], len(lst)
+    else:
+        return lst, len(lst)

@@ -86,10 +86,6 @@ def calc_MI(df: pd.DataFrame):
             else:
                 matMI[ix, jx] = mutual_information(A[:, ix], A[:, jx], bins)
 
-    print("PRINTING MAT_MI")
-    print(matMI)
-    print(matMI.shape)
-
     # Create a DataFrame with Mutual Information values
     df1 = pd.DataFrame(matMI, columns=cols)
     return df1

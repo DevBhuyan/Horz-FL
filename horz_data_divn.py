@@ -2,40 +2,56 @@
 # -*- coding: utf-8 -*-
 
 import pandas as pd
-from random import randint
+from random import randint, seed
 from math import ceil
 from preprocesing import preprocessing_data
 import os
+import pickle
+from warnings import warn
+from tqdm import tqdm
 import gc
 
 gc.enable()
 
 
-def divide(data_df: pd.DataFrame, dataset: str, n_client=5):
-    """This function takes in a raw dataframe (full dataset), processes the
-    data, and divides it into `n_client` number of horizontally divided
-    dataframes with a random number of samples.
+NUM_CLASSES = {
+    "iot": 18,
+    # "ac": 2,
+    # "nsl": 2,
+    # "stackoverflow": None,
+    "synthetic": 25,
+    "isolet": 26,
+    'vehicle': 3,
+    'segmentation': 4
+}
 
-    Parameters
-    ----------
-    data_df : pd.DataFrame
-        Raw DataFrame.
-    dataset : str
-        code name of the dataset in this framework. See 'datasets' table in main().
-    n_client : int, optional
-        number of clients. The default is 5.
 
-    Returns
-    -------
-    df_list : list
-        list of horizontally divided dataframes.
-    """
+CLIENT_DIST_FOR_NONIID = {
+    "iot": 100,
+    # "ac": 50,
+    # "nsl": 50,
+    # "stackoverflow": None,
+    "synthetic": 100,
+    "isolet": 60,
+    'vehicle': 75,
+    'segmentation': 100
+}
+
+
+def divide(data_df: pd.DataFrame,
+           dataset: str,
+           n_client: int = None):
+
+    seed(42)
+
+    if os.path.exists(f"./datasets/ds_cache/{dataset}_{n_client}_iid.pkl"):
+        with open(f"./datasets/ds_cache/{dataset}_{n_client}_iid.pkl", "rb") as f:
+            warn("Data loaded from cache. Delete ./datasets/ds_cache to run afresh")
+            return pickle.load(f)
 
     df_list = []
-    data_df = data_df.sample(frac=1)
     data_df = preprocessing_data(data_df, dataset)
     data_df = data_df.sample(frac=1)
-    data_df = data_df.astype(float)
     l = data_df.shape[0]
 
     prev = 0
@@ -54,98 +70,145 @@ def divide(data_df: pd.DataFrame, dataset: str, n_client=5):
             ub = nxt
         df = data_df.iloc[lb:ub, :]
         df_list.append(df)
-        print("number of samples at cli " + str(i) + " is " + str(ub - lb))
         prev = nxt
+
+    if not os.path.exists('./datasets/ds_cache'):
+        os.makedirs('./datasets/ds_cache', exist_ok=True)
+    with open(f"./datasets/ds_cache/{dataset}_{n_client}_iid.pkl", "wb") as f:
+        pickle.dump(df_list, f)
 
     return df_list
 
 
-def horz_data_divn(dataset: str, n_client=5):
-    """Reads a dataset from storage and returns the horizontally divided
-    dataframes.
+def divide_noniid(data_df: pd.DataFrame,
+                  dataset: str,
+                  iid_ratio: float = 0.2):
 
-    Parameters
-    ----------
-    dataset : str
-        code name of dataset.
-    n_client : int, optional
-        number of clients. The default is 5.
+    n_client = CLIENT_DIST_FOR_NONIID[dataset]
 
-    Returns
-    -------
-    df_list : list
-        list of dataframes.
-    """
-    curr_dir = os.getcwd()
+    if iid_ratio == 1.0:
+        return divide(data_df, dataset, n_client=n_client)
+
+    if os.path.exists(f"./datasets/ds_cache/{dataset}_{n_client}_{str(iid_ratio)}.pkl"):
+        with open(f"./datasets/ds_cache/{dataset}_{n_client}_{str(iid_ratio)}.pkl", "rb") as f:
+            warn("Data loaded from cache. Delete ./datasets/ds_cache to run afresh")
+            return pickle.load(f)
+
+    data_df = preprocessing_data(data_df, dataset)
+
+    labels = data_df['Class'].unique()
+    nunique = len(labels)
+
+    # Splitting the dataframe into separate labels to pop later
+    dataframes_dict = {
+        label: data_df[data_df['Class'] == label] for label in labels}
+
+    num_labels = min(int(iid_ratio * nunique), nunique)
+
+    l = data_df.shape[0]
+    # num_samples is the number of samples allotted to each client
+    num_samples = [randint(ceil((0.9) * l / n_client),
+                           ceil((1.1) * l / n_client)) for i in range(n_client)]
+
+    client_data = [pd.DataFrame(columns=data_df.columns)
+                   for _ in range(n_client)]
+
+    for cli in tqdm(range(n_client), total=n_client):
+
+        # allotted_labels is the list of labels that will be allotted to the client[cli]
+        allotted_labels = [labels[(cli+idx) % nunique]
+                           for idx in range(num_labels)]
+
+        samples_per_class = num_samples[cli]//len(allotted_labels)
+
+        for allotted_label in allotted_labels:
+            client_data[cli] = client_data[cli].append(
+                dataframes_dict[allotted_label].iloc[:samples_per_class, :])
+            dataframes_dict[allotted_label] = dataframes_dict[allotted_label].drop(
+                # TIP: If not using SMOTE oversampling, then uncomment below line
+                # dataframes_dict[allotted_label].index[:min(samples_per_class, dataframes_dict[allotted_label].shape[0]-1)])
+                dataframes_dict[allotted_label].index[:samples_per_class])
+
+        if cli == n_client-1:
+            for df in dataframes_dict.values():
+                warn(
+                    "If this line throws an error like pd.append is deprecated, use pandas==1.4.4")
+                client_data[cli].append(df)
+
+    # TIP: Code to check veracity of function
+    # for idx, client in enumerate(client_data):
+        # print(f"Client_{idx} | num_samples: {client.shape[0]} | labels: {client['Class'].value_counts()}")
+
+    if not os.path.exists('./datasets/ds_cache'):
+        os.makedirs('./datasets/ds_cache', exist_ok=True)
+    with open(f"./datasets/ds_cache/{dataset}_{n_client}_{str(iid_ratio)}.pkl", "wb") as f:
+        pickle.dump(client_data, f)
+
+    return client_data
+
+
+def horz_data_divn(dataset: str,
+                   n_client: int = 50,
+                   non_iid: bool = False,
+                   iid_ratio: float = 0.2) -> list:
 
     if dataset == "nsl":
-        data_df = pd.read_csv(curr_dir + "/datasets/NSL-KDD/KDDTrain+.csv")
-        df_list = divide(data_df, dataset, n_client)
+        data_df = pd.read_csv("./datasets/NSL-KDD/KDDTrain+.csv")
 
     elif dataset == "ac":
         data_df = pd.read_csv(
-            curr_dir + "/datasets/annonymized-credit-card/creditcard.csv"
-        )
-        df_list = divide(data_df, dataset, n_client)
+            "./datasets/annonymized-credit-card/creditcard.csv")
 
     elif dataset == "arcene":
-        data_df = pd.read_csv(curr_dir + "/datasets/ARCENE.csv")
-        df_list = divide(data_df, dataset, n_client)
+        data_df = pd.read_csv("./datasets/ARCENE.csv")
 
     elif dataset == "ionosphere":
-        data_df = pd.read_csv(curr_dir + "/datasets/ionosphere.csv")
-        df_list = divide(data_df, dataset, n_client)
+        data_df = pd.read_csv("./datasets/ionosphere.csv")
 
     elif dataset == "relathe":
-        data_df = pd.read_csv(curr_dir + "/datasets/RELATHE.csv")
-        df_list = divide(data_df, dataset, n_client)
+        data_df = pd.read_csv("./datasets/RELATHE.csv")
 
     elif dataset == "musk":
-        data_df = pd.read_csv(curr_dir + "/datasets/musk_csv.csv")
-        df_list = divide(data_df, dataset, n_client)
+        data_df = pd.read_csv("./datasets/musk_csv.csv")
 
     elif dataset == "TOX-171":
-        data_df = pd.read_csv(curr_dir + "/datasets/TOX-171.csv")
-        df_list = divide(data_df, dataset, n_client)
+        data_df = pd.read_csv("./datasets/TOX-171.csv")
 
     elif dataset == "wdbc":
-        data_df = pd.read_csv(curr_dir + "/datasets/WDBC/data.csv")
-        df_list = divide(data_df, dataset, n_client)
+        data_df = pd.read_csv("./datasets/WDBC/data.csv")
 
     elif dataset == "vowel":
-        data_df = pd.read_csv(curr_dir + "/datasets/csv_result-dataset_58_vowel.csv")
-        df_list = divide(data_df, dataset, n_client)
+        data_df = pd.read_csv(
+            "./datasets/csv_result-dataset_58_vowel.csv")
 
     elif dataset == "wine":
-        data_df = pd.read_csv(curr_dir + "/datasets/wine.csv")
-        df_list = divide(data_df, dataset, n_client)
+        data_df = pd.read_csv("./datasets/wine.csv")
 
     elif dataset == "isolet":
-        data_df = pd.read_csv(curr_dir + "/datasets/isolet_csv.csv")
-        df_list = divide(data_df, dataset, n_client)
+        data_df = pd.read_csv("./datasets/isolet_csv.csv")
 
     elif dataset == "hillvalley":
-        data_df = pd.read_csv(curr_dir + "/datasets/hill-valley_csv.csv")
-        df_list = divide(data_df, dataset, n_client)
+        data_df = pd.read_csv("./datasets/hill-valley_csv.csv")
 
     elif dataset == "vehicle":
-        data_df = pd.read_csv(curr_dir + "/datasets/vehicle.csv")
-        df_list = divide(data_df, dataset, n_client)
+        data_df = pd.read_csv("./datasets/vehicle.csv")
 
     elif dataset == "segmentation":
-        data_df = pd.read_csv(curr_dir + "/datasets/segmentation.csv")
-        df_list = divide(data_df, dataset, n_client)
+        data_df = pd.read_csv("./datasets/segmentation.csv")
 
     elif dataset == "iot":
-        data_df = pd.read_csv(curr_dir + "/datasets/iot.csv")
-        df_list = divide(data_df, dataset, n_client)
+        data_df = pd.read_csv("./datasets/iot.csv")
 
     elif dataset == "diabetes":
-        data_df = pd.read_csv(curr_dir + "/datasets/diabetes.csv")
-        df_list = divide(data_df, dataset, n_client)
+        data_df = pd.read_csv("./datasets/diabetes.csv")
 
     elif dataset == "automobile":
-        data_df = pd.read_csv(curr_dir + "/datasets/Automobile_data.csv")
-        df_list = divide(data_df, dataset, n_client)
+        data_df = pd.read_csv("./datasets/Automobile_data.csv")
 
-    return df_list
+    elif dataset == "synthetic":
+        data_df = pd.read_csv("./datasets/synthetic.csv")
+
+    if non_iid:
+        return divide_noniid(data_df, dataset, iid_ratio)
+    else:
+        return divide(data_df, dataset, n_client)

@@ -55,7 +55,8 @@ def trainModel(x, y, max_depth=200):
     clf : RandomForestClassifier
         Trained Random Forest classifier.
     """
-    clf = RandomForestClassifier(n_estimators=100, max_depth=max_depth, random_state=42)
+    clf = RandomForestClassifier(
+        n_estimators=100, max_depth=max_depth, random_state=42)
     clf.fit(x, y)
 
     print(
@@ -135,3 +136,46 @@ def federatedForest(model_list):
             ff = aggregateForests(ff, model_list[i], max_size)
 
     return ff
+
+
+def make_predictions(model, X):
+    """Make predictions using a trained Random Forest model.
+    Parameters
+    ----------
+    model : RandomForestClassifier
+        Trained Random Forest model.
+    X : array-like or pd.DataFrame
+        Input features for prediction.
+    Returns
+    -------
+    predictions : array-like
+        Predicted class labels.
+    """
+    predictions = model.predict(X)
+    return predictions
+
+
+def federated_ensemble(models, X_test):
+    """Generate an aggregated Federated Ensemble prediction using majority voting.
+    Parameters
+    ----------
+    models : list
+        List of trained Random Forest models from each client.
+    X_test : array-like or pd.DataFrame
+        Input features for prediction.
+    Returns
+    -------
+    ensemble_predictions : array-like
+        Aggregated predictions using majority voting.
+    """
+    predictions_list = []
+    for model in models:
+        predictions = make_predictions(model, X_test)
+        predictions_list.append(predictions)
+
+    ensemble_predictions = []
+    for i in range(len(predictions_list[0])):
+        votes = [predictions[i] for predictions in predictions_list]
+        ensemble_predictions.append(max(set(votes), key=votes.count))
+
+    return ensemble_predictions
