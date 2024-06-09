@@ -20,7 +20,10 @@ def mutual_information(X, Y, bins):
     MI : float
         Mutual Information between X and Y.
     """
-    # Create a 2D histogram for X and Y
+
+    X = np.nan_to_num(X)
+    Y = np.nan_to_num(Y)
+
     c_XY = np.histogram2d(X, Y, bins)[0]
     # Histogram of common occurrences of the 1st feature (X)
     c_X = np.histogram(X, bins)[0]

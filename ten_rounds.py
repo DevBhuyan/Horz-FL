@@ -1,20 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from local_feature_select import local_fs, full_spec_fs
-from global_feature_select import global_feature_select, global_feature_select_single
+from run_iid import run_iid
+from run_noniid import run_noniid
+from horz_data_divn import CLIENT_DIST_FOR_NONIID
 import os
-from horz_data_divn import horz_data_divn
-from ff import ff
-from Fed_MLP import Fed_MLP
 import pandas as pd
-from normalize import normalize
 import numpy as np
 from datetime import datetime
-from sklearn.feature_selection import f_classif, SelectKBest
-from sklearn.feature_selection import RFE
-from sklearn.ensemble import RandomForestClassifier
-from randomforest import rf
 import csv
 import gc
 import warnings
@@ -43,208 +36,19 @@ dataset_list = [
     ["iot", 5, 28, 4],
     ["diabetes", 2, 8, 1],
     ["automobile", 5, 19, 1],
+    ["synthetic", 20, 200, 20]
 ]
 datasets = pd.DataFrame(dataset_list, columns=["dataset", "lb", "ub", "step"])
 
+
 lftr = []
 df_list = []
-max_MLP = 0.0
 obj_list = ["single", "multi", "anova", "rfe"]
-classifier = "ff"  # Either of mlp or ff or randomforest
-ff_list = []
-mlp_list = []
-runs = 10  # This variable will decide the number of times you wish to run the pipeline. The mean and standard deviation of the code will be automatically computed and the end outputs will contain the final computed values.
+classifier = "ff"  # Either of mlp or ff or randomforest\
+non_iid = False
+runs = 1  # This variable will decide the number of times you wish to run the pipeline. The mean and standard deviation of the code will be automatically computed and the end outputs will contain the final computed values.
 
 # END of OPTIONS
-
-
-def run_iid(n_client, n_clust_fcmi, n_clust_ffmi, dataset, num_ftr, dset):
-    """Run the IID (Independent and Identically Distributed) feature selection
-    process.
-
-    Parameters
-    ----------
-    n_client : int
-        Number of clients in the federated learning system.
-    n_clust_fcmi : int
-        Number of clusters for Fcmi feature selection.
-    n_clust_ffmi : int
-        Number of clusters for FFmi feature selection.
-    dataset : str
-        Name of the dataset.
-    num_ftr : int
-        Number of features to be selected.
-    dset : dict
-        Dictionary containing dataset information.
-
-    Returns
-    -------
-    result : tuple
-        Tuple containing information about the selected feature selection method,
-        accuracy, precision, recall, aggregation, precision, recall, and the number
-        of features returned by the local feature selection.
-    """
-    global lftr
-    global df_list
-    global obj
-    global classifier
-    local_feature = []
-
-    # The following code stores the local_features into a variable lftr so that they need not be explicitly computed for different num_ftr during a single run
-    if len(lftr) == 0 and obj in ["single", "multi"]:
-        dlist = []
-        df_list = horz_data_divn(dataset, n_client)
-        for cli in range(0, n_client):
-            data_dfx = df_list[cli]
-            print("cli = ", cli)
-            if dataset == "vowel" or dataset == "vehicle":
-                local, data_df = full_spec_fs(data_dfx, n_clust_fcmi, n_clust_ffmi)
-            else:
-                local, data_df = local_fs(data_dfx, n_clust_fcmi, n_clust_ffmi)
-            local_feature.append(local)
-            dlist.append(data_df)
-        dlist = normalize(dlist)
-        lftr = local_feature
-
-    if obj == "single":
-        # Single-Objective ftr sel
-        print("SINGLE-OBJECTIVE GLOBAL FTR SELECTION....")
-        feature_list, num_avbl_ftrs = global_feature_select_single(lftr, num_ftr)
-        print("feature list: ", feature_list)
-        print("number of features: ", len(feature_list))
-
-        dataframes_to_send = []
-        for cli in range(0, n_client):
-            data_dfx = df_list[cli]
-            print("cli = ", cli)
-            df1 = data_dfx.iloc[:, -1]
-            data_dfx = data_dfx[data_dfx.columns.intersection(feature_list)]
-            data_dfx = data_dfx.assign(Class=df1)
-            dataframes_to_send.append(data_dfx)
-
-        if classifier == "ff":
-            ff_acc, ff_prec, ff_rec = ff(dataframes_to_send)
-            print(f"ff_acc: {ff_acc}, ff_prec: {ff_prec}, ff_rec: {ff_rec}")
-            return "ff", ff_acc, ff_prec, ff_rec
-        elif classifier == "mlp":
-            MLP_acc, MLP_prec, MLP_rec = Fed_MLP(dataframes_to_send)
-            print(f"MLP_acc: {MLP_acc}, MLP_prec: {MLP_prec}, MLP_rec: {MLP_rec}")
-            return "mlp", MLP_acc, MLP_prec, MLP_rec
-        elif classifier == "randomforest":
-            rf_acc, rf_prec, rf_rec = rf(dataframes_to_send)
-            print(f"rf_acc: {rf_acc}, rf_prec: {rf_prec}, rf_rec: {rf_rec}")
-            return (
-                "randomforest",
-                rf_acc,
-                rf_prec,
-                rf_rec,
-            )
-
-    elif obj == "multi":
-        # Multi-Objective ftr sel
-        print("MULTI-OBJECTIVE GLOBAL FTR SELECTION....")
-        feature_list, num_avbl_ftrs = global_feature_select(lftr, num_ftr)
-        print("feature list: ", feature_list)
-        print("number of features: ", len(feature_list))
-
-        dataframes_to_send = []
-        for cli in range(0, n_client):
-            data_dfx = df_list[cli]
-            print("cli = ", cli)
-            df1 = data_dfx.iloc[:, -1]
-            data_dfx = data_dfx[data_dfx.columns.intersection(feature_list)]
-            data_dfx = data_dfx.assign(Class=df1)
-            dataframes_to_send.append(data_dfx)
-        if classifier == "ff":
-            ff_acc, ff_prec, ff_rec = ff(dataframes_to_send)
-            print(f"ff_acc: {ff_acc}, ff_prec: {ff_prec}, ff_rec: {ff_rec}")
-            return "ff", ff_acc, ff_prec, ff_rec
-        elif classifier == "mlp":
-            MLP_acc, MLP_prec, MLP_rec = Fed_MLP(dataframes_to_send)
-            print(f"MLP_acc: {MLP_acc}, MLP_prec: {MLP_prec}, MLP_rec: {MLP_rec}")
-            return "mlp", MLP_acc, MLP_prec, MLP_rec
-        elif classifier == "randomforest":
-            rf_acc, rf_prec, rf_rec = rf(dataframes_to_send)
-            print(f"rf_acc: {rf_acc}, rf_prec: {rf_prec}, rf_rec: {rf_rec}")
-            return (
-                "randomforest",
-                rf_acc,
-                rf_prec,
-                rf_rec,
-            )
-
-    elif obj == "anova":
-        # ANOVA
-        print("ANOVA....")
-        f_selector = SelectKBest(score_func=f_classif, k=num_ftr)
-
-        df_list = horz_data_divn(dset["dataset"], n_client)
-
-        new_list = []
-        for df in df_list:
-            df = df.reset_index(drop=True)
-            X = df.iloc[:, :-1]
-            y = df.iloc[:, -1]
-            f_selector.fit_transform(X, y)
-            feature_indices = f_selector.get_support(indices=True)
-            selected_feature_names = X.columns[feature_indices]
-            df = pd.DataFrame(X)
-            df = df[df.columns.intersection(selected_feature_names)]
-            df = df.assign(Class=y)
-            new_list.append(df)
-
-        if classifier == "ff":
-            ff_acc, ff_prec, ff_rec = ff(new_list)
-            print(f"ff_acc: {ff_acc}, ff_prec: {ff_prec}, ff_rec: {ff_rec}")
-            return "ff", ff_acc, ff_prec, ff_rec
-        elif classifier == "mlp":
-            MLP_acc, MLP_prec, MLP_rec = Fed_MLP(new_list)
-            print(f"MLP_acc: {MLP_acc}, MLP_prec: {MLP_prec}, MLP_rec: {MLP_rec}")
-            return "mlp", MLP_acc, MLP_prec, MLP_rec
-        elif classifier == "randomforest":
-            rf_acc, rf_prec, rf_rec = rf(new_list)
-            print(f"rf_acc: {rf_acc}, rf_prec: {rf_prec}, rf_rec: {rf_rec}")
-            return (
-                "randomforest",
-                rf_acc,
-                rf_prec,
-                rf_rec,
-            )
-
-    elif obj == "rfe":
-        # RFE
-        print("RFE....")
-        estimator = RandomForestClassifier()
-        rfe = RFE(estimator, n_features_to_select=num_ftr)
-
-        df_list = horz_data_divn(dset["dataset"], n_client)
-        new_list = []
-        for df in df_list:
-            df = df.reset_index(drop=True)
-            X = df.iloc[:, :-1]
-            y = df.iloc[:, -1]
-            X = rfe.fit_transform(X, y)
-            df = pd.DataFrame(X)
-            df = df.assign(Class=y)
-            new_list.append(df)
-
-        if classifier == "ff":
-            ff_acc, ff_prec, ff_rec = ff(new_list)
-            print(f"ff_acc: {ff_acc}, ff_prec: {ff_prec}, ff_rec: {ff_rec}")
-            return "ff", ff_acc, ff_prec, ff_rec
-        elif classifier == "mlp":
-            MLP_acc, MLP_prec, MLP_rec = Fed_MLP(new_list)
-            print(f"MLP_acc: {MLP_acc}, MLP_prec: {MLP_prec}, MLP_rec: {MLP_rec}")
-            return "mlp", MLP_acc, MLP_prec, MLP_rec
-        elif classifier == "randomforest":
-            rf_acc, rf_prec, rf_rec = rf(new_list)
-            print(f"rf_acc: {rf_acc}, rf_prec: {rf_prec}, rf_rec: {rf_rec}")
-            return (
-                "randomforest",
-                rf_acc,
-                rf_prec,
-                rf_rec,
-            )
 
 
 def main(dataset, num_ftr, dset, run):
@@ -269,29 +73,20 @@ def main(dataset, num_ftr, dset, run):
         accuracy, precision, recall, aggregation, precision, recall, and the number
         of features returned by the local feature selection.
     """
-    global max_MLP
     global obj
     global classifier
-    global ff_list
-    global mlp_list
 
     print("Dataset: ", dataset)
 
-    FCMI_clust_num = "2"
-    FFMI_clust_num = "2"
-    dataset = dataset
-    cli_num = "5"
+    if not non_iid:
 
-    curr_dir = os.getcwd()
-    print(curr_dir)
+        n_clust_fcmi = 2
+        n_clust_ffmi = 2
+        n_client = 5
 
-    n_clust_fcmi = int(FCMI_clust_num)
-    n_clust_ffmi = int(FFMI_clust_num)
-    n_client = int(cli_num)
-
-    name, acc, prec, rec = run_iid(
-        n_client, n_clust_fcmi, n_clust_ffmi, dataset, num_ftr, dset
-    )
+        name, acc, prec, rec = run_iid(
+            n_client, n_clust_fcmi, n_clust_ffmi, dataset, num_ftr, dset
+        )
 
     return name, acc, prec, rec
 
@@ -331,7 +126,8 @@ if __name__ == "__main__":
 
                 # Iterate through each number of features
                 for num_ftr in rng:
-                    name, acc, prec, rec = main(dset["dataset"], num_ftr, dset, run)
+                    name, acc, prec, rec = main(
+                        dset["dataset"], num_ftr, dset, run)
                     num_ftr_accuracies.append(acc)
                     num_ftr_precs.append(prec)
                     num_ftr_recs.append(rec)

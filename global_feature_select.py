@@ -27,7 +27,7 @@ def feature_modeling(feature_list):
 
 def global_feature_select(feature_list: list,
                           num_ftr: int,
-                          iid_ratio,
+                          iid_ratio: float,
                           dataset: int,
                           n_client: int,
                           verbose: bool = False):

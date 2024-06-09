@@ -14,15 +14,41 @@ import gc
 gc.enable()
 
 
+MAX_FTRS = {
+    "iot": 28,
+    "synthetic": 200,
+    "isolet": 617,
+    'vehicle': 8,
+    'segmentation': 9,
+    "ac": 29,
+    "nsl": 38,
+    "vowel": 12,
+    "ionosphere": 33,
+    "wdbc": 30,
+    "wine": 13,
+    "hillvalley": 100,
+    "diabetes": 8,
+    "california": 9,
+    "boston": 13
+}
+
+
 NUM_CLASSES = {
     "iot": 18,
-    # "ac": 2,
-    # "nsl": 2,
-    # "stackoverflow": None,
+    "ac": 2,
+    "nsl": 2,
     "synthetic": 25,
     "isolet": 26,
     'vehicle': 3,
-    'segmentation': 4
+    'segmentation': 4,
+    "vowel": 6,
+    "ionosphere": 2,
+    "wdbc": 2,
+    "wine": 3,
+    "hillvalley": 1,
+    "diabetes": 2,
+    "california": -1,
+    "boston": -1
 }
 
 
@@ -131,9 +157,12 @@ def divide_noniid(data_df: pd.DataFrame,
 
         if cli == n_client-1:
             for df in dataframes_dict.values():
-                warn(
-                    "If this line throws an error like pd.append is deprecated, use pandas==1.4.4")
-                client_data[cli].append(df)
+                try:
+                    client_data[cli].append(df)
+                except Exception() as e:
+                    print(e)
+                    raise Exception(
+                        "Install pandas==1.4.4 or pip install -r requirements.txt")
 
     # TIP: Code to check veracity of function
     # for idx, client in enumerate(client_data):
@@ -207,6 +236,12 @@ def horz_data_divn(dataset: str,
 
     elif dataset == "synthetic":
         data_df = pd.read_csv("./datasets/synthetic.csv")
+
+    elif dataset == "california":
+        data_df = pd.read_csv('./datasets/california_housing.csv')
+
+    elif dataset == "boston":
+        data_df = pd.read_csv('./datasets/boston_housing.csv')
 
     if non_iid:
         return divide_noniid(data_df, dataset, iid_ratio)

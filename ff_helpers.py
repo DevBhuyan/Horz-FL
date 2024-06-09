@@ -1,13 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from tqdm import tqdm
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 import math
 import numpy as np
+from warnings import warn
 import gc
 
 gc.enable()
+
+
+N_JOBS = -1
+warn(f"Using {N_JOBS if N_JOBS > 0 else 'all'} out of 12 cores for training RandomForests. Update N_JOBS in ff_helpers.py as required")
 
 
 def horz_split(df_list):
@@ -38,7 +44,10 @@ def horz_split(df_list):
     return x_train, y_train, x_test, y_test
 
 
-def trainModel(x, y, max_depth=200):
+def trainModel(x,
+               y,
+               num_classes,
+               max_depth=200):
     """Train a Random Forest classifier.
 
     Parameters
@@ -55,18 +64,26 @@ def trainModel(x, y, max_depth=200):
     clf : RandomForestClassifier
         Trained Random Forest classifier.
     """
-    clf = RandomForestClassifier(
-        n_estimators=100, max_depth=max_depth, random_state=42)
-    clf.fit(x, y)
+    if num_classes > 0:
+        clf = RandomForestClassifier(
+            n_estimators=100,
+            max_depth=max_depth,
+            random_state=42,
+            n_jobs=N_JOBS)
+    else:
+        clf = RandomForestRegressor(
+            random_state=42,
+            n_jobs=N_JOBS)
+    clf.fit(np.nan_to_num(x), np.nan_to_num(y))
 
-    print(
-        "\033[1;33m"
-        + f"\nSize of random forest: {len(clf.estimators_)} trees\nMax tree depth:"
-        f" {max([estimator.get_depth() for estimator in clf.estimators_])}\nTotal"
-        " number of leaves:"
-        f" {np.sum([estimator.get_n_leaves() for estimator in clf.estimators_])}\n\n"
-        + "\033[0m"
-    )
+    # print(
+    #     "\033[1;33m"
+    #     + f"\nSize of random forest: {len(clf.estimators_)} trees\nMax tree depth:"
+    #     f" {max([estimator.get_depth() for estimator in clf.estimators_])}\nTotal"
+    #     " number of leaves:"
+    #     f" {np.sum([estimator.get_n_leaves() for estimator in clf.estimators_])}\n\n"
+    #     + "\033[0m"
+    # )
     return clf
 
 
@@ -138,24 +155,8 @@ def federatedForest(model_list):
     return ff
 
 
-def make_predictions(model, X):
-    """Make predictions using a trained Random Forest model.
-    Parameters
-    ----------
-    model : RandomForestClassifier
-        Trained Random Forest model.
-    X : array-like or pd.DataFrame
-        Input features for prediction.
-    Returns
-    -------
-    predictions : array-like
-        Predicted class labels.
-    """
-    predictions = model.predict(X)
-    return predictions
-
-
-def federated_ensemble(models, X_test):
+def federated_ensemble(models: list[RandomForestClassifier],
+                       X_test):
     """Generate an aggregated Federated Ensemble prediction using majority voting.
     Parameters
     ----------
@@ -169,13 +170,34 @@ def federated_ensemble(models, X_test):
         Aggregated predictions using majority voting.
     """
     predictions_list = []
-    for model in models:
-        predictions = make_predictions(model, X_test)
-        predictions_list.append(predictions)
+    for model, x_test in tqdm(zip(models, X_test), desc="Ensembling...", total=len(models)):
+        predictions = model.predict(np.nan_to_num(x_test))
+        predictions_list.extend(predictions)
 
-    ensemble_predictions = []
-    for i in range(len(predictions_list[0])):
-        votes = [predictions[i] for predictions in predictions_list]
-        ensemble_predictions.append(max(set(votes), key=votes.count))
+    predictions_list = np.array(predictions_list).astype(int)
 
-    return ensemble_predictions
+    # ensemble_predictions = np.apply_along_axis(
+    #     lambda x: np.argmax(np.bincount(x)), axis=0, arr=predictions_list)
+
+    # 27/05/2024 ---------------------------------------------------------------
+    # max_length = max(len(pred) for pred in predictions_list)
+
+    # padded_predictions_list = []
+    # for preds in predictions_list:
+    #     if len(preds) < max_length:
+    #         padded_preds = np.pad(
+    #             preds, (0, max_length - len(preds)), constant_values=-1)
+    #     else:
+    #         padded_preds = preds
+    #     padded_predictions_list.append(padded_preds)
+
+    # predictions_list = np.array(padded_predictions_list).astype(int)
+
+    # def majority_vote(x):
+    #     counts = np.bincount(x[x != -1])
+    #     return np.argmax(counts) if len(counts) > 0 else -1
+
+    # ensemble_predictions = np.apply_along_axis(
+    #     majority_vote, axis=0, arr=predictions_list)
+
+    return predictions_list

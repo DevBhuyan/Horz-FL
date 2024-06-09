@@ -1,52 +1,52 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Created on Sun Mar 24 03:37:10 2024
+Created on Sun Mar 24 03:33:11 2024
 
 @author: dev
 """
 
+
 from fed_mrmr import federated_mrmr
+from tqdm import tqdm
+import pickle
+import os
+from warnings import warn
 from local_feature_select import local_fs, full_spec_fs
 from global_feature_select import global_feature_select, global_feature_select_single
-from horz_data_divn import horz_data_divn, CLIENT_DIST_FOR_NONIID, NUM_CLASSES
+from horz_data_divn import horz_data_divn, NUM_CLASSES
 from ff import ff
 from Fed_MLP import Fed_MLP
 from sklearn.feature_selection import f_classif, SelectKBest
 from sklearn.feature_selection import RFE
 from sklearn.ensemble import RandomForestClassifier
 import pandas as pd
-import pickle
-import os
-from warnings import warn
-from tqdm import tqdm
-from joblib import Parallel, delayed
 
 
 N_JOBS = 4
 warn(f"Using {N_JOBS if N_JOBS > 0 else 'all'} out of 12 cores for RFE. Update N_JOBS in ff_helpers.py as required")
 
 
-def run_noniid(n_clust_fcmi: int,
-               n_clust_ffmi: int,
-               dataset: str,
-               num_ftr: int,
-               obj: str,
-               classifier: str,
-               iid_ratio: float = 1.0):
+def run_iid(n_client: int,
+            n_clust_fcmi: int,
+            n_clust_ffmi: int,
+            dataset: str,
+            num_ftr: int,
+            obj: str,
+            classifier: str):
 
     local_feature = []
 
-    n_client = CLIENT_DIST_FOR_NONIID[dataset]
-
-    df_list = horz_data_divn(
-        dataset, n_client, non_iid=True, iid_ratio=iid_ratio)
+    df_list = horz_data_divn(dataset,
+                             n_client,
+                             non_iid=False)
 
     # The following code stores the local_features into a variable lftr so that they need not be explicitly computed for different num_ftr during a single run
     if os.path.exists(f"./lftr_cache/lftr_{n_clust_fcmi}_{n_clust_ffmi}_{dataset}.pkl"):
         with open(f"./lftr_cache/lftr_{n_clust_fcmi}_{n_clust_ffmi}_{dataset}.pkl", "rb") as f:
             warn("Data loaded from cache. Delete ./lftr_cache to run local_fs again")
             lftr = pickle.load(f)
+
     else:
         if obj in ["single", "multi"]:
             print("Generating Local Feature set")
@@ -68,23 +68,23 @@ def run_noniid(n_clust_fcmi: int,
 
     if obj == "single":
         # Single-Objective ftr sel
-        return single_obj(lftr, num_ftr, n_client, df_list, classifier, NUM_CLASSES[dataset], iid_ratio, dataset)
+        return single_obj(lftr, num_ftr, n_client, df_list, classifier, NUM_CLASSES[dataset],  dataset)
 
     elif obj == "multi":
         # Multi-Objective ftr sel
-        return multi_obj(lftr, num_ftr, n_client, df_list, classifier, NUM_CLASSES[dataset], iid_ratio, dataset)
+        return multi_obj(lftr, num_ftr, n_client, df_list, classifier, NUM_CLASSES[dataset], dataset)
 
     elif obj == "anova":
         # ANOVA
-        return anova_obj(num_ftr, n_client, classifier, df_list, NUM_CLASSES[dataset], iid_ratio, dataset)
+        return anova_obj(num_ftr, n_client, classifier, df_list, NUM_CLASSES[dataset], dataset)
 
     elif obj == "rfe":
         # RFE
-        return rfe_obj(num_ftr, n_client, classifier, df_list, NUM_CLASSES[dataset], iid_ratio, dataset)
+        return rfe_obj(num_ftr, n_client, classifier, df_list, NUM_CLASSES[dataset], dataset)
 
     elif obj == 'mrmr':
         # Fed-mRMR
-        return mrmr_obj(num_ftr, n_client, df_list, classifier, NUM_CLASSES[dataset], iid_ratio, dataset)
+        return mrmr_obj(num_ftr, n_client, df_list, classifier, NUM_CLASSES[dataset], dataset)
 
 
 def single_obj(lftr,
@@ -92,7 +92,10 @@ def single_obj(lftr,
                n_client,
                df_list,
                classifier,
-               num_classes, iid_ratio, dataset):
+               num_classes,
+               dataset):
+
+    iid_ratio = 1.0
 
     storage_file = f"./dataframes_to_send/df_list_for_single_{n_client}_{num_ftr}_{iid_ratio}_{dataset}.pkl"
 
@@ -123,7 +126,10 @@ def multi_obj(lftr,
               n_client,
               df_list,
               classifier,
-              num_classes, iid_ratio, dataset):
+              num_classes,
+              dataset):
+
+    iid_ratio = 1.0
 
     storage_file = f"./dataframes_to_send/df_list_for_multi_{n_client}_{num_ftr}_{iid_ratio}_{dataset}.pkl"
 
@@ -153,7 +159,10 @@ def anova_obj(num_ftr,
               n_client,
               classifier,
               df_list,
-              num_classes, iid_ratio, dataset):
+              num_classes,
+              dataset):
+
+    iid_ratio = 1.0
 
     storage_file = f"./dataframes_to_send/df_list_for_anova_{n_client}_{num_ftr}_{iid_ratio}_{dataset}.pkl"
 
@@ -199,8 +208,9 @@ def rfe_obj(num_ftr,
             classifier,
             df_list,
             num_classes,
-            iid_ratio,
             dataset):
+
+    iid_ratio = 1.0
 
     storage_file = f"./dataframes_to_send/df_list_for_rfe_{n_client}_{num_ftr}_{iid_ratio}_{dataset}.pkl"
 
@@ -228,8 +238,9 @@ def mrmr_obj(num_ftr,
              df_list,
              classifier,
              num_classes,
-             iid_ratio,
              dataset):
+
+    iid_ratio = 1.0
 
     storage_file = f"./dataframes_to_send/df_list_for_mrmr_{n_client}_{num_ftr}_{iid_ratio}_{dataset}.pkl"
 
@@ -251,9 +262,7 @@ def mrmr_obj(num_ftr,
         with open(storage_file, "rb") as f:
             dataframes_to_send = pickle.load(f)
 
-    return 0, 0, 0
-
-    # return classify(classifier, dataframes_to_send, num_classes)
+    return classify(classifier, dataframes_to_send, num_classes)
 
 
 def classify(classifier: str,
