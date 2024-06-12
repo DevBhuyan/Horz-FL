@@ -56,6 +56,8 @@ def ff(df_list: list,
         fed = federatedForest(models)
 
         print("Evaluating....")
+        x_test_concat = np.nan_to_num(x_test_concat)
+
         fed_y_pred = fed.predict(x_test_concat)
         ff_acc = accuracy_score(y_test_concat, fed_y_pred)
         ff_f1 = f1_score(y_test_concat, fed_y_pred, average="weighted")

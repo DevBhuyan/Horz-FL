@@ -28,9 +28,11 @@ def run_iid(n_client: int,
             dataset: str,
             num_ftr: int,
             obj: str,
-            classifier: str):
+            classifier: str,
+            max_depth: int = 200):
 
     local_feature = []
+    os.makedirs('./dataframes_to_send', exist_ok=True)
 
     df_list = horz_data_divn(dataset,
                              n_client,
@@ -63,23 +65,27 @@ def run_iid(n_client: int,
 
     if obj == "single":
         # Single-Objective ftr sel
-        return single_obj(lftr, num_ftr, n_client, df_list, classifier, NUM_CLASSES[dataset],  dataset)
+        return single_obj(lftr, num_ftr, n_client, df_list, classifier, NUM_CLASSES[dataset],  dataset, max_depth)
 
     elif obj == "multi":
         # Multi-Objective ftr sel
-        return multi_obj(lftr, num_ftr, n_client, df_list, classifier, NUM_CLASSES[dataset], dataset)
+        return multi_obj(lftr, num_ftr, n_client, df_list, classifier, NUM_CLASSES[dataset], dataset, max_depth)
 
     elif obj == "anova":
         # ANOVA
-        return anova_obj(num_ftr, n_client, classifier, df_list, NUM_CLASSES[dataset], dataset)
+        return anova_obj(num_ftr, n_client, classifier, df_list, NUM_CLASSES[dataset], dataset, max_depth)
 
     elif obj == "rfe":
         # RFE
-        return rfe_obj(num_ftr, n_client, classifier, df_list, NUM_CLASSES[dataset], dataset)
+        return rfe_obj(num_ftr, n_client, classifier, df_list, NUM_CLASSES[dataset], dataset, max_depth)
 
     elif obj == 'mrmr':
         # Fed-mRMR
-        return mrmr_obj(num_ftr, n_client, df_list, classifier, NUM_CLASSES[dataset], dataset)
+        return mrmr_obj(num_ftr, n_client, df_list, classifier, NUM_CLASSES[dataset], dataset, max_depth)
+
+    elif obj == 'nofs':
+        # No-FS
+        return nofs_obj(num_ftr, n_client, df_list, classifier, NUM_CLASSES[dataset], dataset, max_depth)
 
 
 def single_obj(lftr,
@@ -88,7 +94,8 @@ def single_obj(lftr,
                df_list,
                classifier,
                num_classes,
-               dataset):
+               dataset,
+               max_depth):
 
     iid_ratio = 1.0
 
@@ -113,7 +120,7 @@ def single_obj(lftr,
         with open(storage_file, "rb") as f:
             dataframes_to_send = pickle.load(f)
 
-    return classify(classifier, dataframes_to_send, num_classes)
+    return classify(classifier, dataframes_to_send, num_classes, non_iid=False, max_depth=max_depth)
 
 
 def multi_obj(lftr,
@@ -122,7 +129,8 @@ def multi_obj(lftr,
               df_list,
               classifier,
               num_classes,
-              dataset):
+              dataset,
+              max_depth):
 
     iid_ratio = 1.0
 
@@ -147,7 +155,7 @@ def multi_obj(lftr,
         with open(storage_file, "rb") as f:
             dataframes_to_send = pickle.load(f)
 
-    return classify(classifier, dataframes_to_send, num_classes)
+    return classify(classifier, dataframes_to_send, num_classes, non_iid=False, max_depth=max_depth)
 
 
 def anova_obj(num_ftr,
@@ -155,7 +163,7 @@ def anova_obj(num_ftr,
               classifier,
               df_list,
               num_classes,
-              dataset):
+              dataset, max_depth):
 
     iid_ratio = 1.0
 
@@ -184,7 +192,7 @@ def anova_obj(num_ftr,
         with open(storage_file, "rb") as f:
             dataframes_to_send = pickle.load(f)
 
-    return classify(classifier, dataframes_to_send, num_classes)
+    return classify(classifier, dataframes_to_send, num_classes, non_iid=False, max_depth=max_depth)
 
 
 def _rfe_process_df(df, estimator, num_ftr):
@@ -203,7 +211,8 @@ def rfe_obj(num_ftr,
             classifier,
             df_list,
             num_classes,
-            dataset):
+            dataset,
+            max_depth):
 
     iid_ratio = 1.0
 
@@ -225,7 +234,7 @@ def rfe_obj(num_ftr,
         with open(storage_file, "rb") as f:
             dataframes_to_send = pickle.load(f)
 
-    return classify(classifier, dataframes_to_send, num_classes)
+    return classify(classifier, dataframes_to_send, num_classes, non_iid=False, max_depth=max_depth)
 
 
 def mrmr_obj(num_ftr,
@@ -233,7 +242,8 @@ def mrmr_obj(num_ftr,
              df_list,
              classifier,
              num_classes,
-             dataset):
+             dataset,
+             max_depth):
 
     iid_ratio = 1.0
 
@@ -257,20 +267,44 @@ def mrmr_obj(num_ftr,
         with open(storage_file, "rb") as f:
             dataframes_to_send = pickle.load(f)
 
-    return classify(classifier, dataframes_to_send, num_classes)
+    return classify(classifier, dataframes_to_send, num_classes, non_iid=False, max_depth=max_depth)
+
+
+def nofs_obj(num_ftr,
+             n_client,
+             df_list,
+             classifier,
+             num_classes,
+             dataset,
+             max_depth):
+
+    return classify(classifier, df_list, num_classes, non_iid=False, max_depth=max_depth)
 
 
 def classify(classifier: str,
              dataframes_to_send: list,
              num_classes: int,
-             non_iid: bool = True):
+             non_iid: bool = False,
+             max_depth: int = 200):
 
     print("\nTraining on:", classifier)
     if classifier == "ff":
-        ff_acc, ff_f1 = ff(dataframes_to_send, num_classes, non_iid=True)
-        # print(f"ff_acc: {ff_acc}, ff_f1: {ff_f1}")
-        return "ff", ff_acc, ff_f1
+        if max_depth == 200:
+            ff_acc, ff_f1 = ff(dataframes_to_send,
+                               num_classes,
+                               non_iid=False)
+            print(f"ff_acc: {ff_acc}, ff_f1: {ff_f1}")
+            return "ff", ff_acc, ff_f1
+        else:
+            ff_acc, ff_f1, returned_max_depth, total_leaves = ff(dataframes_to_send,
+                                                                 num_classes,
+                                                                 non_iid=False,
+                                                                 max_depth=max_depth)
+
+            print(f"ff_acc: {ff_acc}, ff_f1: {ff_f1}")
+            return "ff", ff_acc, ff_f1, returned_max_depth, total_leaves
+
     elif classifier == "mlp":
         MLP_acc, MLP_f1 = Fed_MLP(dataframes_to_send, num_classes=num_classes)
-        # print(f"MLP_acc: {MLP_acc}, MLP_f1: {MLP_f1}")
+        print(f"MLP_acc: {MLP_acc}, MLP_f1: {MLP_f1}")
         return "mlp", MLP_acc, MLP_f1

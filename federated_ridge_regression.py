@@ -1,3 +1,4 @@
+import os
 import pickle
 import numpy as np
 from sklearn.linear_model import Ridge
@@ -24,8 +25,11 @@ def prepare_data(data):
     return X, y
 
 
-def federated_learning(clients_data, num_global_rounds=10, num_local_rounds=20, alpha=1.0, lr=0.01):
-    input_dim = clients_data[0][0].shape[1] - 1
+def federated_learning(clients_data,
+                       num_global_rounds=10,
+                       num_local_rounds=20,
+                       alpha=1.0,
+                       lr=0.01):
     global_model = Ridge(alpha=alpha)
 
     best_global_model_coefs = None
@@ -104,13 +108,18 @@ def federated_learning(clients_data, num_global_rounds=10, num_local_rounds=20, 
     return global_model, mse, rmse, mae
 
 
-file_path = './dataframes_to_send/df_list_for_single_5_8_1.0_california.pkl'
-with open(file_path, 'rb') as file:
-    clients_data = pickle.load(file)
+if __name__ == "__main__":
+    for file in os.listdir('./dataframes_to_send/'):
+        if 'california' in file or 'boston' in file:
+            print('\n', file, '\n')
 
-split_clients_data = [split_data(df) for df in clients_data]
+            file_path = './dataframes_to_send/' + file
+            with open(file_path, 'rb') as file:
+                clients_data = pickle.load(file)
 
-best_model, test_mse, test_rmse, test_mae = federated_learning(
-    split_clients_data)
+            split_clients_data = [split_data(df) for df in clients_data]
 
-test_mse, test_rmse, test_mae
+            best_model, test_mse, test_rmse, test_mae = federated_learning(
+                split_clients_data)
+
+            print(test_mse, test_rmse, test_mae)

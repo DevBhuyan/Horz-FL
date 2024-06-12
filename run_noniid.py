@@ -31,6 +31,7 @@ def run_noniid(n_clust_fcmi: int,
                iid_ratio: float = 1.0):
 
     local_feature = []
+    os.makedirs('./dataframes_to_send', exist_ok=True)
 
     n_client = CLIENT_DIST_FOR_NONIID[dataset]
 

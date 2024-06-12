@@ -20,21 +20,21 @@ This code will run the main pipeline for selected FS methods across selected dat
 
 # OPTIONS: ----------------------------------------------
 dataset_list = [
-    # ["vehicle", 2, 8, 1],     # ALL DONE
-    # ["segmentation", 2, 9, 1],    # ALL DONE
-    # ["isolet", 80, 617, 80],  # rfe takes at least 1 hr on single core
-    # ["iot", 6, 21, 5],
-    # ["synthetic", 40, 160, 40],   # at least 1h41m per main call
-    # ["nsl", 5, 38, 5],    # two classes only
-    # ["vowel", 2, 12, 1],
-    # ["ionosphere", 5, 33, 1],
-    # ["wdbc", 5, 31, 1],
-    # ["wine", 5, 13, 1],  # Cannot have a large number of clients due to small dataset size
-    # ["hillvalley", 5, 100, 5],
-    # ["diabetes", 2, 8, 1],
-    # ["ac", 5, 29, 5],
+    ["vehicle", 2, 8, 1],     # ALL DONE
+    ["segmentation", 2, 9, 1],    # ALL DONE
+    ["isolet", 80, 617, 80],  # rfe takes at least 1 hr on single core
+    ["iot", 6, 21, 5],
+    ["synthetic", 40, 160, 40],   # at least 1h41m per main call
+    ["nsl", 5, 38, 5],    # two classes only
+    ["vowel", 2, 12, 1],
+    ["ionosphere", 5, 33, 1],
+    ["wdbc", 5, 31, 1],
+    ["wine", 5, 13, 1],  # Cannot have a large number of clients due to small dataset size
+    ["hillvalley", 5, 100, 5],
+    ["diabetes", 2, 8, 1],
+    ["ac", 5, 29, 5],
     ["california", 2, 9, 1],
-    # ["boston", 2, 13, 1]
+    ["boston", 2, 13, 1]
 ]
 DATASETS = pd.DataFrame(dataset_list, columns=["dataset", "lb", "ub", "step"])
 
@@ -47,10 +47,10 @@ OBJ_LIST = [
     'mrmr'
 ]
 IID_RATIOS = [
-    # 0.2,
-    # 0.5,
-    # 0.8,
-    # 1.0
+    0.2,
+    0.5,
+    0.8,
+    1.0
 ]
 CLASSIFIER = "ff"  # Either of mlp or ff or randomforest
 non_iid = False
@@ -81,8 +81,7 @@ def main(num_ftr: int,
     n_clust_ffmi = 2
 
     if not non_iid:
-        n_client = 5
-        # if dataset not in ["california", "boston"] else 100
+        n_client = 5 if dataset not in ["california", "boston"] else 100
 
         name, acc, f1 = run_iid(
             n_client, n_clust_fcmi, n_clust_ffmi, dataset, num_ftr, obj, CLASSIFIER)

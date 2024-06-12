@@ -2,13 +2,14 @@
 # -*- coding: utf-8 -*-
 
 
+from horz_data_divn import NUM_CLASSES
+from art import text2art
 from sota import far
 import os
 from ff import ff
 from Fed_MLP import Fed_MLP
 import pandas as pd
 from datetime import datetime
-from randomforest import rf
 import gc
 
 gc.enable()
@@ -51,31 +52,24 @@ def run_iid(n_client, n_clust_fcmi, n_clust_ffmi, dataset, dset, thresh):
     global classifier
 
     if obj == "sota":
-        print("SOTA ALGORITHM....")
+        text2art("FSHFL")
         dataframes_to_send = far(dataset, n_client, thresh)
         num_ftr_returned = len(dataframes_to_send[0].columns) - 1
 
         if classifier == "ff":
-            ff_acc, ff_prec, ff_rec = ff(dataframes_to_send)
+            ff_acc, ff_f1 = ff(dataframes_to_send, NUM_CLASSES[dataset])
             print(
-                f"ff_acc: {ff_acc}, ff_prec: {ff_prec}, ff_rec: {ff_rec},"
+                f"ff_acc: {ff_acc}, ff_f1: {ff_f1},"
                 f" num_ftr_returned: {num_ftr_returned}"
             )
-            return "ff", ff_acc, ff_prec, ff_rec, num_ftr_returned
+            return "ff", ff_acc, ff_f1, num_ftr_returned
         elif classifier == "mlp":
-            MLP_acc, MLP_prec, MLP_rec = Fed_MLP(dataframes_to_send)
+            MLP_acc, MLP_f1 = Fed_MLP(dataframes_to_send, NUM_CLASSES[dataset])
             print(
-                f"MLP_acc: {MLP_acc}, MLP_prec: {MLP_prec}, MLP_rec: {MLP_rec},"
+                f"MLP_acc: {MLP_acc}, MLP_f1: {MLP_f1},"
                 f" num_ftr_returned: {num_ftr_returned}"
             )
-            return "mlp", MLP_acc, MLP_prec, MLP_rec, num_ftr_returned
-        elif classifier == "randomforest":
-            rf_acc, rf_prec, rf_rec = rf(dataframes_to_send)
-            print(
-                f"rf_acc: {rf_acc}, rf_prec: {rf_prec}, rf_rec: {rf_rec},"
-                f" num_ftr_returned: {num_ftr_returned}"
-            )
-            return "randomforest", rf_acc, rf_prec, rf_rec, num_ftr_returned
+            return "mlp", MLP_acc, MLP_f1, num_ftr_returned
 
 
 def main(dataset, dset, thresh):
@@ -96,11 +90,11 @@ def main(dataset, dset, thresh):
     n_clust_ffmi = int(FFMI_clust_num)
     n_client = int(cli_num)
 
-    name, acc, prec, rec, num_ftr_returned = run_iid(
+    name, acc, f1, num_ftr_returned = run_iid(
         n_client, n_clust_fcmi, n_clust_ffmi, dataset, dset, thresh
     )
 
-    return name, acc, prec, rec, num_ftr_returned
+    return name, acc, f1, num_ftr_returned
 
 
 if __name__ == "__main__":
@@ -108,14 +102,16 @@ if __name__ == "__main__":
         ds = []
 
         for thresh in range(10):
-            name, acc, prec, rec, num_ftr_returned = main(
-                dset["dataset"], dset, float(thresh) / 10.0
+            name, acc, f1, num_ftr_returned = main(
+                dset["dataset"],
+                dset,
+                float(thresh) / 10.0
             )
 
-            ds.append([num_ftr_returned, acc, prec, rec])
+            ds.append([num_ftr_returned, acc, f1])
 
         dataset_df = pd.DataFrame(ds)
-        dataset_df.columns = ["num_ftr", "acc", "prec", "rec"]
+        dataset_df.columns = ["num_ftr", "acc", "f1"]
 
         dataset_df.to_csv(
             dset["dataset"]
