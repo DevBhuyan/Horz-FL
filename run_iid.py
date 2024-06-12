@@ -30,6 +30,22 @@ def run_iid(n_client: int,
             obj: str,
             classifier: str,
             max_depth: int = 200):
+    """
+    Run the experiment on IID data.
+
+    Parameters:
+    - n_client (int): Number of clients.
+    - n_clust_fcmi (int): Number of clusters for client-side MI feature selection.
+    - n_clust_ffmi (int): Number of clusters for federated feature selection.
+    - dataset (str): Dataset name.
+    - num_ftr (int): Number of features to select.
+    - obj (str): Objective for feature selection ('single', 'multi', 'anova', 'rfe', 'mrmr', 'nofs').
+    - classifier (str): Classifier to use ('ff' for Federated Forest, 'mlp' for Federated MLP).
+    - max_depth (int, optional): Maximum depth for Federated Forest. Defaults to 200.
+
+    Returns:
+    Tuple[str, float, float]: Tuple containing the classifier name, accuracy, and F1 score.
+    """
 
     local_feature = []
     os.makedirs('./dataframes_to_send', exist_ok=True)
@@ -96,6 +112,22 @@ def single_obj(lftr,
                num_classes,
                dataset,
                max_depth):
+    """
+    Perform single-objective feature selection.
+
+    Parameters:
+    - lftr: The local feature set.
+    - num_ftr (int): Number of features to select.
+    - n_client (int): Number of clients.
+    - df_list: List of dataframes.
+    - classifier (str): Classifier to use.
+    - num_classes (int): Number of classes in the dataset.
+    - dataset (str): Dataset name.
+    - max_depth (int): Maximum depth for Federated Forest.
+
+    Returns:
+    Tuple[str, float, float]: Tuple containing the classifier name, accuracy, and F1 score.
+    """
 
     iid_ratio = 1.0
 
@@ -131,6 +163,22 @@ def multi_obj(lftr,
               num_classes,
               dataset,
               max_depth):
+    """
+    Perform multi-objective feature selection.
+
+    Parameters:
+    - lftr: The local feature set.
+    - num_ftr (int): Number of features to select.
+    - n_client (int): Number of clients.
+    - df_list: List of dataframes.
+    - classifier (str): Classifier to use.
+    - num_classes (int): Number of classes in the dataset.
+    - dataset (str): Dataset name.
+    - max_depth (int): Maximum depth for Federated Forest.
+
+    Returns:
+    Tuple[str, float, float]: Tuple containing the classifier name, accuracy, and F1 score.
+    """
 
     iid_ratio = 1.0
 
@@ -164,6 +212,21 @@ def anova_obj(num_ftr,
               df_list,
               num_classes,
               dataset, max_depth):
+    """
+    Perform feature selection using ANOVA.
+
+    Parameters:
+    - num_ftr (int): Number of features to select.
+    - n_client (int): Number of clients.
+    - classifier (str): Classifier to use.
+    - df_list: List of dataframes.
+    - num_classes (int): Number of classes in the dataset.
+    - dataset (str): Dataset name.
+    - max_depth (int): Maximum depth for Federated Forest.
+
+    Returns:
+    Tuple[str, float, float]: Tuple containing the classifier name, accuracy, and F1 score.
+    """
 
     iid_ratio = 1.0
 
@@ -213,6 +276,21 @@ def rfe_obj(num_ftr,
             num_classes,
             dataset,
             max_depth):
+    """
+    Perform Recursive Feature Elimination (RFE).
+
+    Parameters:
+    - num_ftr (int): Number of features to select.
+    - n_client (int): Number of clients.
+    - classifier (str): Classifier to use.
+    - df_list: List of dataframes.
+    - num_classes (int): Number of classes in the dataset.
+    - dataset (str): Dataset name.
+    - max_depth (int): Maximum depth for Federated Forest.
+
+    Returns:
+    Tuple[str, float, float]: Tuple containing the classifier name, accuracy, and F1 score.
+    """
 
     iid_ratio = 1.0
 
@@ -244,6 +322,21 @@ def mrmr_obj(num_ftr,
              num_classes,
              dataset,
              max_depth):
+    """
+    Perform feature selection using federated mRMR.
+
+    Parameters:
+    - num_ftr (int): Number of features to select.
+    - n_client (int): Number of clients.
+    - df_list: List of dataframes.
+    - classifier (str): Classifier to use.
+    - num_classes (int): Number of classes in the dataset.
+    - dataset (str): Dataset name.
+    - max_depth (int): Maximum depth for Federated Forest.
+
+    Returns:
+    Tuple[str, float, float]: Tuple containing the classifier name, accuracy, and F1 score.
+    """
 
     iid_ratio = 1.0
 
@@ -277,6 +370,7 @@ def nofs_obj(num_ftr,
              num_classes,
              dataset,
              max_depth):
+    """Do not perform any feature selection, send the data as it is"""
 
     return classify(classifier, df_list, num_classes, non_iid=False, max_depth=max_depth)
 
@@ -286,6 +380,21 @@ def classify(classifier: str,
              num_classes: int,
              non_iid: bool = False,
              max_depth: int = 200):
+    """
+    Classify the data using the specified classifier.
+
+    Parameters:
+    - classifier (str): The classifier to use ('ff' for Federated Forest, 'mlp' for Federated MLP).
+    - dataframes_to_send (list): List of dataframes.
+    - num_classes (int): Number of classes in the dataset.
+    - non_iid (bool, optional): Whether the data is non-IID. Defaults to False.
+    - max_depth (int, optional): Maximum depth for Federated Forest. Defaults to 200.
+
+    Returns:
+    Union[Tuple[str, float, float], Tuple[str, float, float, int, int]]: Tuple containing the classifier name,
+    accuracy, and F1 score, or in the case of Federated Forest with custom max_depth, the returned maximum depth
+    and total leaves in addition to accuracy and F1 score.
+    """
 
     print("\nTraining on:", classifier)
     if classifier == "ff":

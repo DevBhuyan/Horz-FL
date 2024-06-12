@@ -9,6 +9,15 @@ from sklearn.impute import SimpleImputer
 
 
 def split_data(df):
+    """
+    Split the dataset into training, validation, and test sets.
+
+    Parameters:
+    - df (pd.DataFrame): The dataset to be split.
+
+    Returns:
+    Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]: Tuple containing the training, validation, and test sets.
+   """
     train_data, test_data = train_test_split(df, test_size=0.2, random_state=42)
     train_data, val_data = train_test_split(
         train_data, test_size=0.2, random_state=42)
@@ -16,6 +25,15 @@ def split_data(df):
 
 
 def prepare_data(data):
+    """
+    Prepare the data for training.
+
+    Parameters:
+    - data (pd.DataFrame): The dataset to be prepared.
+
+    Returns:
+    Tuple[np.ndarray, np.ndarray]: Tuple containing the features (X) and labels (y).
+    """
     X = data.iloc[:, :-1]
     y = data.iloc[:, -1]
     imputer = SimpleImputer(strategy='mean')
@@ -30,6 +48,19 @@ def federated_learning(clients_data,
                        num_local_rounds=20,
                        alpha=1.0,
                        lr=0.01):
+    """
+    Perform federated learning on the provided client datasets.
+
+    Parameters:
+    - clients_data (List[Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]]): List of tuples containing training, validation, and test data for each client.
+    - num_global_rounds (int): Number of global training rounds.
+    - num_local_rounds (int): Number of local training rounds per client.
+    - alpha (float): Regularization strength.
+    - lr (float): Learning rate.
+
+    Returns:
+    Tuple[Ridge, float, float, float]: Tuple containing the trained global model and evaluation metrics (MSE, RMSE, MAE) on the test set.
+    """
     global_model = Ridge(alpha=alpha)
 
     best_global_model_coefs = None

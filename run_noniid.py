@@ -29,6 +29,21 @@ def run_noniid(n_clust_fcmi: int,
                obj: str,
                classifier: str,
                iid_ratio: float = 1.0):
+    """
+    Run the non-IID scenario for feature selection and classification.
+
+    Parameters:
+    - n_clust_fcmi (int): Number of clusters for local feature selection using FCMi.
+    - n_clust_ffmi (int): Number of clusters for local feature selection using FFmi.
+    - dataset (str): Name of the dataset.
+    - num_ftr (int): Number of features to select.
+    - obj (str): Feature selection objective ('single', 'multi', 'anova', 'rfe', 'mrmr').
+    - classifier (str): The classifier to use ('ff' for Federated Forest, 'mlp' for Federated MLP).
+    - iid_ratio (float, optional): Ratio for IID data. Defaults to 1.0.
+
+    Returns:
+    Tuple[str, float, float]: Tuple containing the classifier name, accuracy, and F1 score.
+    """
 
     local_feature = []
     os.makedirs('./dataframes_to_send', exist_ok=True)
@@ -256,6 +271,18 @@ def classify(classifier: str,
              dataframes_to_send: list,
              num_classes: int,
              non_iid: bool = True):
+    """
+    Classify the data using the specified classifier.
+
+    Parameters:
+    - classifier (str): The classifier to use ('ff' for Federated Forest, 'mlp' for Federated MLP).
+    - dataframes_to_send (list): List of dataframes.
+    - num_classes (int): Number of classes in the dataset.
+    - non_iid (bool, optional): Whether the data is non-IID. Defaults to True.
+
+    Returns:
+    Tuple[str, float, float]: Tuple containing the classifier name, accuracy, and F1 score.
+    """
 
     print("\nTraining on:", classifier)
     if classifier == "ff":

@@ -8,6 +8,15 @@ gc.enable()
 
 
 def label_encode(data_df):
+    """
+    Encode categorical columns in a DataFrame using LabelEncoder.
+
+    Parameters:
+    - data_df (pd.DataFrame): Input DataFrame containing categorical columns.
+
+    Returns:
+    pd.DataFrame: DataFrame with encoded categorical columns.
+    """
     categorical_cols = data_df.select_dtypes(include=['object']).columns
 
     label_encoders = {}
@@ -21,6 +30,17 @@ def label_encode(data_df):
 def preprocessing_data(data_df: pd.DataFrame,
                        dataset_name: str,
                        oversampling: bool = True):
+    """
+    Preprocess the input DataFrame based on the specified dataset name.
+
+    Parameters:
+    - data_df (pd.DataFrame): Input DataFrame containing the dataset.
+    - dataset_name (str): Name of the dataset being processed.
+    - oversampling (bool, optional): Flag indicating whether oversampling should be applied. Default is True.
+
+    Returns:
+    pd.DataFrame: Preprocessed DataFrame.
+    """
 
     data_df = label_encode(data_df)
 

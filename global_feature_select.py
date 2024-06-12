@@ -31,6 +31,29 @@ def global_feature_select(feature_list: list,
                           dataset: int,
                           n_client: int,
                           verbose: bool = False):
+    """
+    Perform global feature selection using NSGA-II algorithm and caching.
+
+    Parameters
+    ----------
+    feature_list : list
+        List of features.
+    num_ftr : int
+        Number of features to select.
+    iid_ratio : float
+        IID ratio for the dataset.
+    dataset : int
+        Dataset identifier.
+    n_client : int
+        Number of clients.
+    verbose : bool, optional
+        If True, displays a scatter plot of the features. Default is False.
+
+    Returns
+    -------
+    tuple
+        List of selected features and the total number of features.
+    """
     # flat_list = feature_modeling(feature_list)
     # df = pd.DataFrame(flat_list, columns=["features", "FCMI", "aFFMI"])
 
@@ -82,6 +105,27 @@ def global_feature_select_single(feature_list,
                                  iid_ratio,
                                  dataset,
                                  n_client):
+    """
+    Perform global feature selection using a single objective method and caching.
+
+    Parameters
+    ----------
+    feature_list : list
+        List of features.
+    num_ftr : int
+        Number of features to select.
+    iid_ratio : float
+        IID ratio for the dataset.
+    dataset : int
+        Dataset identifier.
+    n_client : int
+        Number of clients.
+
+    Returns
+    -------
+    tuple
+        List of selected features and the total number of features.
+    """
     # flat_list = feature_modeling(feature_list)
     # df = pd.DataFrame(flat_list, columns=["features", "FCMI", "aFFMI"])
 

@@ -8,9 +8,33 @@ import numpy as np
 from sklearn.metrics import mutual_info_score as mutual_info
 
 
+"""
+This Python implementation of Fed-mRMR is based on the original Rust 
+implementation of Fed-mRMR: A lossless federated feature selection method
+by Jorge Hermo, Verónica Bolón-Canedo, and Susana Ladra
+"""
+
+
 def local_mrmr(df,
                num_ftr,
                dataset):
+    """
+    Calculate mutual information between features and class labels locally.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame containing the dataset.
+    num_ftr : int
+        Number of features to select.
+    dataset : str
+        Name of the dataset.
+
+    Returns
+    -------
+    relevances : np.array
+        Array of mutual information values between features and class labels.
+    """
     candidates = list(df.columns)[:-1]
 
     if dataset not in ["california", "boston"]:
@@ -24,6 +48,19 @@ def local_mrmr(df,
 
 
 def precompute_mutual_info(df_list):
+    """
+    Precompute mutual information between all pairs of features to save time.
+
+    Parameters
+    ----------
+    df_list : list of pd.DataFrame
+        List of DataFrames containing the dataset.
+
+    Returns
+    -------
+    mutual_info_scores : dict
+        Dictionary of mutual information scores between feature pairs.
+    """
     mutual_info_scores = {}
     features = list(df_list[0].columns)[:-1]
 
@@ -46,6 +83,26 @@ def federated_mrmr(df_list,
                    num_ftr,
                    iid_ratio,
                    dataset):
+    """
+    Perform federated mRMR (Minimum Redundancy Maximum Relevance) feature selection.
+
+    Parameters
+    ----------
+    df_list : list of pd.DataFrame
+        List of DataFrames containing the dataset.
+    num_ftr : int
+        Number of features to select.
+    iid_ratio : float
+        IID ratio for the dataset.
+    dataset : str
+        Name of the dataset.
+
+    Returns
+    -------
+    all_features_ranked : list
+        List of selected features.
+    """
+
     n_client = len(df_list)
     aggregated_relevances = None
 

@@ -67,6 +67,23 @@ CLIENT_DIST_FOR_NONIID = {
 def divide(data_df: pd.DataFrame,
            dataset: str,
            n_client: int = None):
+    """
+    Divide the dataset into IID parts and cache the result.
+
+    Parameters
+    ----------
+    data_df : pd.DataFrame
+        DataFrame containing the dataset.
+    dataset : str
+        Name of the dataset.
+    n_client : int, optional
+        Number of clients to divide the dataset into.
+
+    Returns
+    -------
+    df_list : list
+        List of DataFrames, each representing a client's data.
+    """
 
     seed(42)
 
@@ -109,6 +126,23 @@ def divide(data_df: pd.DataFrame,
 def divide_noniid(data_df: pd.DataFrame,
                   dataset: str,
                   iid_ratio: float = 0.2):
+    """
+    Divide the dataset into non-IID parts and cache the result.
+
+    Parameters
+    ----------
+    data_df : pd.DataFrame
+        DataFrame containing the dataset.
+    dataset : str
+        Name of the dataset.
+    iid_ratio : float, optional
+        Ratio of IID to non-IID data. Default is 0.2.
+
+    Returns
+    -------
+    client_data : list
+        List of DataFrames, each representing a client's data.
+    """
 
     n_client = CLIENT_DIST_FOR_NONIID[dataset]
 
@@ -180,6 +214,25 @@ def horz_data_divn(dataset: str,
                    n_client: int = 50,
                    non_iid: bool = False,
                    iid_ratio: float = 0.2) -> list:
+    """
+    Divide the dataset horizontally into clients.
+
+    Parameters
+    ----------
+    dataset : str
+        Name of the dataset.
+    n_client : int, optional
+        Number of clients to divide the dataset into. Default is 50.
+    non_iid : bool, optional
+        Whether to use non-IID division. Default is False.
+    iid_ratio : float, optional
+        Ratio of IID to non-IID data for non-IID division. Default is 0.2.
+
+    Returns
+    -------
+    list
+        List of DataFrames, each representing a client's data.
+    """
 
     if dataset == "nsl":
         data_df = pd.read_csv("./datasets/NSL-KDD/KDDTrain+.csv")
