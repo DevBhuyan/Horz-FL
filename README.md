@@ -25,31 +25,31 @@ Recommended Python Version: `3.9`
 	This file contains our Python implementation of the Fed-mRMR algorithm proposed by Hermo et. Al.
 	
 # Other helper files:
-./calc_MI.py
-./Cluster_kmeans.py
-./results_utils.py
-./run_iid.py
-./run_noniid.py
-./SMOTE.py
-./train_model.py
-./data_prep.py
-./MLP_helpers.py
-./sota.py
-./FAR_based_outlier_detection.py
-./Fed_MLP.py
-./ff.py
-./ff_helpers.py
-./frhc.py
-./global_feature_select.py
-./global_update.py
-./helpers.py
-./horz_data_divn.py
-./local_feature_select.py
-./local_update.py
-./normalize.py
-./NSGA_2.py
-./options.py
-./preprocesing.py
+ - calc_MI.py
+ - Cluster_kmeans.py
+ - results_utils.py
+ - run_iid.py
+ - run_noniid.py
+ - SMOTE.py
+ - train_model.py
+ - data_prep.py
+ - MLP_helpers.py
+ - sota.py
+ - FAR_based_outlier_detection.py
+ - Fed_MLP.py
+ - ff.py
+ - ff_helpers.py
+ - frhc.py
+ - global_feature_select.py
+ - global_update.py
+ - helpers.py
+ - horz_data_divn.py
+ - local_feature_select.py
+ - local_update.py
+ - normalize.py
+ - NSGA_2.py
+ - options.py
+ - preprocesing.py
 
 The datasets directory can be downloaded from [here](https://drive.google.com/file/d/1OgmWSRQkSaRYkNr9uju_qejz-lrPRgkf/view?usp=sharing) ~ 163.7 MB
 EDIT: Newer datasets are larger, it is recommended that you check the dataset_sources.txt to download all the datasets.
