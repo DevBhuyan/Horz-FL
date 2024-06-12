@@ -9,6 +9,7 @@ import pandas as pd
 from sklearn.feature_selection import f_classif, SelectKBest
 from sklearn.feature_selection import RFE
 from sklearn.ensemble import RandomForestClassifier
+from normalize import normalize
 import gc
 
 gc.enable()
@@ -50,7 +51,7 @@ classifier = "ff"
 ff_list = []
 
 
-def run_iid(dataset: str, num_ftr: int, max_depth=200):
+def run_iid(dataset: str, num_ftr: int, max_depth=100):
     """Function to compute max_depth of federated-forest trees vs. accuracy.
 
     Parameters
@@ -152,6 +153,8 @@ def run_iid(dataset: str, num_ftr: int, max_depth=200):
             df = df[df.columns.intersection(selected_feature_names)]
             df = df.assign(Class=y)
             dataframes_to_send.append(df)
+
+        dataframes_to_send = normalize(dataframes_to_send)
 
         if classifier == "ff":
             ff_acc, ff_prec, ff_rec, max_depth, total_leaves = ff(

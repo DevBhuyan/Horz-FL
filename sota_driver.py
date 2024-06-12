@@ -40,7 +40,7 @@ datasets = pd.DataFrame(dataset_list, columns=["dataset", "lb", "ub", "step"])
 
 df_list = []
 obj = "sota"
-classifier = "randomforest"
+classifier = "ff"
 
 # END of OPTIONS
 

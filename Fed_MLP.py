@@ -13,7 +13,20 @@ tf.random.set_seed(42)
 
 def Fed_MLP(df_list: list,
             num_classes: int,
-            communication_iterations=2):
+            communication_iterations=100):
+    """
+    Train a federated multi-layer perceptron (MLP) model on a list of DataFrames.
+
+    Parameters:
+    - df_list (list): List of DataFrames to train on.
+    - num_classes (int): Number of output classes for the classification task.
+    - communication_iterations (int, optional): Number of communication rounds for federated learning. Default is 2.
+
+    Returns:
+    - accu (float): Accuracy of the aggregated model on the concatenated test set.
+    - f1 (float): F1 score of the aggregated model on the concatenated test set.
+    """
+
     x_train, y_train, x_test, y_test = horz_split(df_list, num_classes)
 
     print("Training on FedMLP....")

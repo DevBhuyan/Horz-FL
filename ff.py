@@ -21,24 +21,23 @@ import gc
 
 gc.enable()
 
-"""Federated Forest Implementation for Horizontal Federated Learning.
-
-This script implements a federated learning approach using a federated forest for classification.
-
-Workflow:
-    Fetch df_list
-    Split train_test divn
-    Split X, y
-    Train locally
-    Aggregate models
-    Evaluate
-"""
-
 
 def ff(df_list: list,
        num_classes: int,
        non_iid: bool = False,
        max_depth: int = 200):
+    """Federated Forest Implementation for Horizontal Federated Learning.
+
+    This script implements a federated learning approach using a federated forest for classification.
+
+    Workflow:
+        Fetch df_list
+        Split train_test divn
+        Split X, y
+        Train locally
+        Aggregate models
+        Evaluate
+    """
 
     x_train, y_train, x_test, y_test = horz_split(df_list)
 
@@ -61,16 +60,16 @@ def ff(df_list: list,
         ff_acc = accuracy_score(y_test_concat, fed_y_pred)
         ff_f1 = f1_score(y_test_concat, fed_y_pred, average="weighted")
 
-        # print(
-        #     "\033[1;33m"
-        #     + "\nAverage training time per client :"
-        #     f" {(datetime.now()-start)/len(df_list)} \nSize of federated forest:"
-        #     f" {len(fed.estimators_)} trees\nMax tree depth:"
-        #     f" {max([estimator.get_depth() for estimator in fed.estimators_])}\nTotal"
-        #     " number of leaves in federated forest:"
-        #     f" {np.sum([estimator.get_n_leaves() for estimator in fed.estimators_])}\n"
-        #     + "\033[0m"
-        # )
+        print(
+            "\033[1;33m"
+            + "\nAverage training time per client :"
+            f" {(datetime.now()-start)/len(df_list)} \nSize of federated forest:"
+            f" {len(fed.estimators_)} trees\nMax tree depth:"
+            f" {max([estimator.get_depth() for estimator in fed.estimators_])}\nTotal"
+            " number of leaves in federated forest:"
+            f" {np.sum([estimator.get_n_leaves() for estimator in fed.estimators_])}\n"
+            + "\033[0m"
+        )
 
         returned_max_depth = max([estimator.get_depth()
                                  for estimator in fed.estimators_])
@@ -83,12 +82,12 @@ def ff(df_list: list,
         ff_acc = mean_squared_error(y_test_concat, fed_y_pred, squared=False)
         ff_f1 = r2_score(y_test_concat, fed_y_pred)
 
-        # print(
-        #     "\033[1;33m"
-        #     + "\nAverage training time per client :"
-        #     f" {(datetime.now()-start)/len(df_list)}"
-        #     + "\033[0m"
-        # )
+        print(
+            "\033[1;33m"
+            + "\nAverage training time per client :"
+            f" {(datetime.now()-start)/len(df_list)}"
+            + "\033[0m"
+        )
 
     if max_depth == 200:
         return ff_acc, ff_f1

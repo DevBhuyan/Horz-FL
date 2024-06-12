@@ -128,7 +128,7 @@ def run_iid(
             dlist.append(data_df)
         dlist = normalize(dlist)
         lftr = local_feature
-        ftrs_returned_by_lfs = max([len(cli) for cli in lftr])
+        max([len(cli) for cli in lftr])
 
     if obj == "single":
         # Single-Objective ftr sel
@@ -151,7 +151,7 @@ def run_iid(
                 dataframes_to_send, communication_iterations=comm_iter
             )
             print(f"MLP_acc: {MLP_acc}, MLP_prec: {MLP_prec}, MLP_rec: {MLP_rec}")
-            return "mlp", MLP_acc, MLP_prec, MLP_rec, a, p, r, ftrs_returned_by_lfs
+            return "mlp", MLP_acc, MLP_prec, MLP_rec
 
     elif obj == "multi":
         # Multi-Objective ftr sel
@@ -173,7 +173,7 @@ def run_iid(
                 dataframes_to_send, communication_iterations=comm_iter
             )
             print(f"MLP_acc: {MLP_acc}, MLP_prec: {MLP_prec}, MLP_rec: {MLP_rec}")
-            return "mlp", MLP_acc, MLP_prec, MLP_rec, a, p, r, ftrs_returned_by_lfs
+            return "mlp", MLP_acc, MLP_prec, MLP_rec
 
     elif obj == "anova":
         # ANOVA
@@ -200,7 +200,7 @@ def run_iid(
                 new_list, communication_iterations=comm_iter
             )
             print(f"MLP_acc: {MLP_acc}, MLP_prec: {MLP_prec}, MLP_rec: {MLP_rec}")
-            return "mlp", MLP_acc, MLP_prec, MLP_rec, a, p, r, ftrs_returned_by_lfs
+            return "mlp", MLP_acc, MLP_prec, MLP_rec
 
     elif obj == "rfe":
         # RFE
@@ -224,7 +224,7 @@ def run_iid(
                 new_list, communication_iterations=comm_iter
             )
             print(f"MLP_acc: {MLP_acc}, MLP_prec: {MLP_prec}, MLP_rec: {MLP_rec}")
-            return "mlp", MLP_acc, MLP_prec, MLP_rec, a, p, r, ftrs_returned_by_lfs
+            return "mlp", MLP_acc, MLP_prec, MLP_rec
 
     else:
         print("NoFS")
@@ -235,7 +235,7 @@ def run_iid(
                 df_list, communication_iterations=comm_iter
             )
             print(f"MLP_acc: {MLP_acc}, MLP_prec: {MLP_prec}, MLP_rec: {MLP_rec}")
-            return "mlp", MLP_acc, MLP_prec, MLP_rec, a, p, r, ftrs_returned_by_lfs
+            return "mlp", MLP_acc, MLP_prec, MLP_rec
 
 
 def main(dataset, num_ftr, dset, comm_iter):
@@ -259,11 +259,11 @@ def main(dataset, num_ftr, dset, comm_iter):
     n_clust_ffmi = int(FFMI_clust_num)
     n_client = int(cli_num)
 
-    name, acc, prec, rec, a, p, r, ftrs_returned_by_lfs = run_iid(
+    name, acc, prec, rec = run_iid(
         n_client, n_clust_fcmi, n_clust_ffmi, dataset, num_ftr, dset, comm_iter
     )
 
-    return name, acc, prec, rec, a, p, r, ftrs_returned_by_lfs
+    return name, acc, prec, rec
 
 
 if __name__ == "__main__":
@@ -295,7 +295,7 @@ if __name__ == "__main__":
                 num_ftr_recs = []
 
                 for num_ftr in rng:  # for each number of features
-                    name, acc, prec, rec, a, p, r, ftrs_returned_by_lfs = main(
+                    name, acc, prec, rec = main(
                         dset["dataset"], num_ftr, dset, comm_iter
                     )
                     num_ftr_accuracies.append(acc)

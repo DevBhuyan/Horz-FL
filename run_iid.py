@@ -1,10 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-Created on Sun Mar 24 03:33:11 2024
-
-@author: dev
-"""
 
 
 from fed_mrmr import federated_mrmr

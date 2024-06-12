@@ -1,10 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-Created on Sun Mar 24 16:33:34 2024
-
-@author: dev
-"""
 
 from sklearn.datasets import make_classification
 import pandas as pd

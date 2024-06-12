@@ -9,6 +9,17 @@ simplefilter(action="ignore", category=FutureWarning)
 def local_fs(data_df: pd.DataFrame,
              n_clust_fcmi: int = 2,
              n_clust_ffmi: int = 2):
+    """
+    Perform local feature selection using mutual information metrics.
+
+    Parameters:
+    - data_df (pd.DataFrame): DataFrame containing the dataset.
+    - n_clust_fcmi (int): Number of clusters for FCMI-based clustering. Default is 2.
+    - n_clust_ffmi (int): Number of clusters for FFMI-based clustering. Default is 2.
+
+    Returns:
+    - local_feature (list): List of selected features along with their FCMI and FFMI scores.
+    """
     # Calculate Mutual Information metrics
     MI_Fcmi = []
     MI_Ffmi = []
@@ -76,7 +87,17 @@ def local_fs(data_df: pd.DataFrame,
 
 
 def full_spec_fs(data_df, n_clust_fcmi, n_clust_ffmi):
-    """Force select all features during local clustering."""
+    """
+    Force select all features during local clustering.
+
+    Parameters:
+    - data_df (pd.DataFrame): DataFrame containing the dataset.
+    - n_clust_fcmi (int): Number of clusters for FCMI-based clustering.
+    - n_clust_ffmi (int): Number of clusters for FFMI-based clustering.
+
+    Returns:
+    - out (list): List of all features along with their FCMI and FFMI scores.
+    """
     avg_Ffmi = []
     mi = calc_MI(data_df)
     Fcmi = mi.iloc[:, -1:]
@@ -100,9 +121,15 @@ def full_spec_fs(data_df, n_clust_fcmi, n_clust_ffmi):
 
 
 def fcmi_and_affmi(data_df):
-    """To inspect.
+    """
+    Inspect and return the FCMI and aFFMI scores.
 
-    Returns the list of FCMI and aFFMI scores for data inspection.
+    Parameters:
+    - data_df (pd.DataFrame): DataFrame containing the dataset.
+
+    Returns:
+    - list_fcmi (list): List of FCMI scores.
+    - avg_Ffmi (list): List of average FFMI scores.
     """
     avg_Ffmi = []
     mi = calc_MI(data_df)

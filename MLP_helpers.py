@@ -80,6 +80,20 @@ def trainModel(x,
                yval,
                num_classes: int,
                model=None):
+    """
+    Train a neural network model on the provided training data.
+
+    Parameters:
+    - x (numpy array): Training features.
+    - y (numpy array): Training labels.
+    - xval (numpy array): Validation features.
+    - yval (numpy array): Validation labels.
+    - num_classes (int): Number of output classes.
+    - model (Sequential, optional): Predefined model to train, if any.
+
+    Returns:
+    - model (Sequential): Trained model.
+    """
 
     input_dim = x.shape[1]
 
@@ -124,6 +138,17 @@ def trainModel(x,
 
 
 def fedMLP(models, sample_sizes):
+    """
+    Perform federated learning by averaging model weights.
+
+    Parameters:
+    - models (list): List of models to aggregate.
+    - sample_sizes (list): List of sample sizes corresponding to each model.
+
+    Returns:
+    - agg_model (Sequential): Aggregated model.
+   """
+
     n_models = len(models)
     agg_weights = models[0].get_weights()
     for i in range(1, n_models):
@@ -153,6 +178,19 @@ def fedMLP(models, sample_sizes):
 
 
 def acc(model, x_test, y_test):
+    """
+    Evaluate the model and calculate accuracy and F1 score.
+
+    Parameters:
+    - model (Sequential): Trained model to evaluate.
+    - x_test (numpy array): Test features.
+    - y_test (numpy array): Test labels.
+
+    Returns:
+    - acc (float): Accuracy of the model.
+    - f1 (float): F1 score of the model.
+    """
+
     loss, acc, p, r = model.evaluate(x_test, y_test)
     if p+r > 0:
         return acc, 2*p*r/(p+r)
