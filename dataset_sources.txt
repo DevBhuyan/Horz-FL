@@ -124,3 +124,26 @@ BibTex - @misc{automobile_dataset,
   url = {https://www.kaggle.com/datasets/toramky/automobile-dataset},
 }
 
+14. Boston House Price Data - https://www.kaggle.com/datasets/grandeurkoe/boston-house-price-data
+BibTex - @misc{boston_house_price_data,
+  title = {Boston House Price Data},
+  author = {Vishal Kushwaha},
+  howpublished = {Kaggle},
+  year = {2023},
+  note = {A dataset containing housing prices in Boston for various attributes.},
+  url = {https://www.kaggle.com/datasets/grandeurkoe/boston-house-price-data},
+}
+
+15. California Housing Prices - https://www.kaggle.com/datasets/camnugent/california-housing-prices
+BibTex - @misc{california_housing_prices,
+  title = {California Housing Prices},
+  author = {CAM Nugent},
+  howpublished = {Kaggle},
+  year = {2017},
+  note = {Median house prices for California districts derived from the 1990 census.},
+  url = {https://www.kaggle.com/datasets/camnugent/california-housing-prices},
+}
+
+16. Synthetic
+Run `python generate_synthetic_data.py` to generate this
+
