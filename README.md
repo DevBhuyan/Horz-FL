@@ -1,4 +1,5 @@
-## README file for Horz-FL-main
+## README file for Cost-Efficient Feature Selection for Horizontal Federated Learning
+
 
 # Quickstart:
 ```bash
