@@ -1,4 +1,4 @@
-## Cost-Efficient Feature Selection for Horizontal Federated Learning
+# Cost-Efficient Feature Selection for Horizontal Federated Learning
 
 
 # Quickstart:
